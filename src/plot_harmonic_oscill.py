@@ -14,17 +14,19 @@ tmax = 100
 time = []
 coord = []
 
-print("This is a simulation of an harmonic oscillator.\n")
+print("This is a simulation of an harmonic oscillator.")
+
+# generating an image
+fig = plt.figure()
+plt.xlabel('time [s]')
+plt.ylabel('position [m]')
+plt.title('Harmonic Oscillator')
 
 # set oscillator
 oscill = HarmonicOscillator(1)
 
-# generating an image
-fig = plt.figure(figsize = (10, 10))
-plt.title('Harmonic Oscillator', fontsize = 15)
-
 # simulation with different increment 
-for h in {0.01, 0.001, 0.0001} :
+for h in {0.0001} :
 
     # set position
     oscill.set_position([0, 0, 0], [1, 0, 0])
@@ -38,19 +40,14 @@ for h in {0.01, 0.001, 0.0001} :
         oscill.rk4(h)
         t += h
 
-    t = 0
-
     # plot position
-    plt.xlabel('time [s]')
-    plt.ylabel('position [m]')
-    plt.title('Position')
     plt.plot(time, coord)
-
-
+    
+    t = 0
     time = []
     coord = []
     
-print("Simulazione finita!")
-print("Immagine creata!")
-fig.savefig('HarmonicOscillator.jpg', bbox_inches='tight', dpi=150)
+print("Simulation ended!") 
+print("Image generated!")
+fig.savefig('HarmonicOscillator.jpg', bbox_inches='tight')
 plt.show()

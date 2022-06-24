@@ -54,7 +54,7 @@ class Position :
         self.coord = coord
         self.vel = vel
         self.update_position()
-
+    
     def update_position(self) : 
         self.pos[:, 0] = self.coord
         self.pos[:, 1] = self.vel
@@ -89,7 +89,7 @@ class Position :
 
 
     # get position
-    def get_position(self) :
+    def get_position(self) -> np.array((3, 2)):
         return self.pos
 
 

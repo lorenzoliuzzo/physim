@@ -14,41 +14,40 @@ tmax = 100
 time = []
 coord = []
 
-print("This is a simulation of a forced oscillator.\n")
-
-# set oscillator
-oscill = ForcedOscillator(10, 5)
+print("This is a simulation of a forced oscillator.")
 
 # generating an image
-fig = plt.figure(figsize = (10, 10))
-plt.title('Forced Oscillator', fontsize = 15)
+fig = plt.figure()
+plt.xlabel('time [s]')
+plt.ylabel('position [m]')
+plt.title('Forced Oscillator')
+
+# set oscillator
+oscill = ForcedOscillator(10, 9.5)
 
 # simulation with different increment 
-for h in {0.01, 0.001, 0.0001} :
+for h in {0.0001} :
 
     # set position
     oscill.set_position([0, 0, 0], [0, 0, 0])
+
     while (t < tmax) :
         # updating data for plotting
         time.append(t)
         coord.append(oscill.get_coord_x())
 
         # ode solver
-        oscill.rk4(h, t)
+        oscill.euler(h, t)
         t += h
 
-    t = 0
-
     # plot position
-    plt.xlabel('time [s]')
-    plt.ylabel('position [m]')
-    plt.title('Position')
     plt.plot(time, coord)
 
+    t = 0
     time = []
     coord = []
-    
-print("Simulazione finita!")
-print("Immagine creata!")
-fig.savefig('ForcedOscillator.jpg', bbox_inches='tight', dpi=150)
+
+print("Simulation ended!") 
+print("Image generated!")
+fig.savefig('ForcedOscillator.jpg', bbox_inches='tight')
 plt.show()

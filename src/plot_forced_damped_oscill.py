@@ -14,17 +14,19 @@ tmax = 100
 time = []
 coord = []
 
-print("This is a simulation of a forced-damped oscillator.\n")
+print("This is a simulation of a forced-damped oscillator.")
+
+# generating an image
+fig = plt.figure()
+plt.xlabel('time [s]')
+plt.ylabel('position [m]')
+plt.title('Forced-Damped Oscillator')
 
 # set oscillator
 oscill = ForcedDampedOscillator(10, 15, 1 / 30)
 
-# generating an image
-fig = plt.figure(figsize = (15, 15))
-plt.title('Forced Damped Oscillator', fontsize = 15)
-
 # simulation with different increment 
-for h in {0.01, 0.001, 0.0001} :
+for h in {0.0001} :
 
     # set position
     oscill.set_position([0, 0, 0], [0, 0, 0])
@@ -38,18 +40,14 @@ for h in {0.01, 0.001, 0.0001} :
         oscill.rk4(h, t)
         t += h
 
-    t = 0
-
     # plot position
-    plt.xlabel('time [s]')
-    plt.ylabel('position [m]')
-    plt.title('Position')
     plt.plot(time, coord)
 
+    t = 0
     time = []
     coord = []
 
-print("Simulazione finita!")
-print("Immagine creata!")
-fig.savefig('ForcedDampedOscillator.jpg', bbox_inches='tight', dpi=150)
+print("Simulation ended!") 
+print("Image generated!")
+fig.savefig('ForcedDampedOscillator.jpg', bbox_inches='tight')
 plt.show()
