@@ -1,3 +1,9 @@
+
+# author:          Lorenzo Liuzzo
+# email:           lorenzoliuzzo@outlook.com
+# description:     Position(class) keeps track of coordinates and velocity of an object in a 3D system.
+# last updated:    24/06/2022
+
 import numpy as np
 
 
@@ -6,7 +12,7 @@ class Position :
     # class members 
     coord = np.empty(3)
     vel = np.empty(3)
-    pos = np.empty(shape = (3, 2)) 
+    pos = np.empty(shape = (3, 2), dtype = float) 
 
     def __init__(self, coord, vel) :
         self.coord = coord
@@ -83,7 +89,7 @@ class Position :
 
 
     # get position
-    def get_position(self) : 
+    def get_position(self) :
         return self.pos
 
 
