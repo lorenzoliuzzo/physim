@@ -37,7 +37,7 @@ for h in {0.0001} :
         coord.append(oscill.get_coord_x())
 
         # ode solver
-        oscill.euler(h, t)
+        oscill.rk4(h, t)
         t += h
 
     # plot position
@@ -49,5 +49,5 @@ for h in {0.0001} :
 
 print("Simulation ended!") 
 print("Image generated!")
-fig.savefig('ForcedOscillator.jpg', bbox_inches='tight')
+fig.savefig('ForcedOscillator2.jpg', bbox_inches='tight')
 plt.show()

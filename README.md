@@ -1,2 +1,5 @@
 # physim
-Python simulations for physics.
+c++ and python code for physics simulations.
+
+# tableofcontent
+

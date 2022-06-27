@@ -32,12 +32,9 @@ class ForcedOscillator(ODE) :
         self.omega1 = omega1
 
     def eval(self, t, pos = None) :
-        if pos is None :
-            self.df[:, 0] = self.get_velocity()
-            self.df[:, 1] = - np.dot(self.omega0 ** 2, self.get_coordinates())  + np.sin(self.omega1 * t) 
-        else :    
-            self.df[:, 0] = pos[:, 1]
-            self.df[:, 1] = - np.dot(self.omega0 ** 2, pos[:, 0]) + np.sin(self.omega1 * t) 
+        if pos is None : pos = self.get_position()
+        self.df[:, 0] = pos[:, 1]
+        self.df[:, 1] = - np.dot(self.omega0 ** 2, pos[:, 0]) + np.sin(self.omega1 * t)
         return self.df
 
     def print(self) : 
