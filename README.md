@@ -1,6 +1,7 @@
 # physim
 c++ and python code for physics simulations.
 
-# %\tableofcontents
+# tableofcontents
+
 
 
