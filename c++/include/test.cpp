@@ -2,7 +2,8 @@
 
 #include "math/integral.h"
 #include "math/statistics.h"
-// #include "physics/.h"
+#include "physics/position.h"
+#include "physics/oscillators.h"
 
 int main() {
 
