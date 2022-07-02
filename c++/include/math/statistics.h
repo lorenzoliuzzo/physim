@@ -1,3 +1,4 @@
+
 // author:          Lorenzo Liuzzo
 // email:           lorenzoliuzzo@outlook.com
 // description:     Some statistical functions for data analysis. 
@@ -39,6 +40,13 @@ T median(IT begin, IT end) {
     sort(begin, end); 
     if ((end - begin) % 2 != 0) return *(begin + (end - begin) / 2);
     else return ((*(begin + (end - begin) / 2) + *(begin + (end - begin) / 2 - 1)) / 2);
+}
+
+template <typename T, typename K>
+T median(std::vector<K> v) {
+    sort(v.begin(), v.end()); 
+    if (v.size()%2 != 0) return v[v.size() / 2];
+    else return (v[v.size() / 2] + v[(v.size() / 2)-1]) / 2; 
 }
 
 
@@ -109,23 +117,5 @@ T chi_sq(std::vector<K> v, J expected_value) {
     T accu{}; 
     for (auto x : v) accu += pow(x - expected_value, 2) / sd(v); 
     return accu; 
-}
-
-
-
-
-
-
-
-
-
-// this is a std::vector implementation of the functions written above
-
-
-template <typename T, typename K>
-T median(std::vector<K> v) {
-    sort(v.begin(), v.end()); 
-    if (v.size()%2 != 0) return v[v.size() / 2];
-    else return (v[v.size() / 2] + v[(v.size() / 2)-1]) / 2; 
 }
 

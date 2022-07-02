@@ -2,7 +2,8 @@
 // author:          Lorenzo Liuzzo
 // email:           lorenzoliuzzo@outlook.com
 // description:     RandomGenerator(class) can generate pseudo-casual numbers, following some of the most common distributions of probability.
-// last updated:    17/06/2022
+// last updated:    02/07/2022
+
 
 #pragma once
 #include <iostream>
@@ -76,16 +77,16 @@ class RandomGenerator {
             return mean + sigma * x;
         }
 
-        // double gauss_accept_reject(double mean, double sigma) {
-        //     double x{}, y{}, g{}; 
-        //     while (true) {
-        //         x = rand(-5., 5.); 
-        //         y = rand(); 
-        //         g = exp(- pow(x, 2) / 2); 
-        //         if (y <= g) break;
-        //     }
-        //     std::cout << "sium\n";
-        //     return mean + x * sigma;
-        // }
+        double gauss_accept_reject(double mean, double sigma) {
+            double x{}, y{}, g{}; 
+            while (true) {
+                x = rand(-5., 5.); 
+                y = rand(); 
+                g = exp(- pow(x, 2) / 2); 
+                if (y <= g) break;
+            }
+            std::cout << "sium\n";
+            return mean + x * sigma;
+        }
 
 }; 
