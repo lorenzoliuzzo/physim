@@ -9,7 +9,7 @@ from oscillators import DampedOscillator
 
 
 t = 0
-tmax = 100
+tmax = 11
 
 time = []
 coord = []
@@ -23,13 +23,13 @@ plt.ylabel('position [m]')
 plt.title('Damped Oscillator')
 
 # set oscillator
-oscill = DampedOscillator(10, 1 / 30)
+oscill = DampedOscillator(3.1623, 1 / 10)
 
 # simulation with different increment 
 for h in {0.0001} :
 
     # set position
-    oscill.set_position([3, 0, 0], [0, 0, 0])
+    oscill.set_position([0.196, 0, 0], [0, 0, 0])
 
     while (t < tmax) :
         # updating data for plotting
@@ -37,7 +37,7 @@ for h in {0.0001} :
         coord.append(oscill.get_coord_x())
 
         # ode solver
-        oscill.rk4(h)
+        oscill.euler(h)
         t += h
 
     # plot position
@@ -49,5 +49,5 @@ for h in {0.0001} :
 
 print("Simulation ended!") 
 print("Image generated!")
-fig.savefig('DampedOscillator.jpg', bbox_inches='tight')
+fig.savefig('es_pol.jpg', bbox_inches='tight')
 plt.show()

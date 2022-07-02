@@ -5,7 +5,7 @@
 // last updated:    19/06/2022
 
 #pragma once
-#include "ode.h"
+#include "../ode.h"
 
 
 class HarmonicOscillator : public ODE {

@@ -1,10 +1,8 @@
 
 // author:          Lorenzo Liuzzo
 // email:           lorenzoliuzzo@outlook.com
-// description:     Integral(class) and its derived classes present are some usefull tools 
-//                  for numerically evaluate the integral of a function in a range [a, b].
-// last updated:    30/06/2022
-
+// description:     Integral(class) and its derived classes present are some usefull tools for evaluating numerically the integral of a function in a range [a, b].
+// last updated:    18/06/2022
 
 #pragma once
 #include "functions.h"
