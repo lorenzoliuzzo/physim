@@ -109,7 +109,7 @@ class ForcedOscillator : public ODE {
         std::vector<std::vector<double>> eval(const std::vector<std::vector<double>>& init, double h = 0.001) override {
             reset_df(); 
             m_df[0] = init[1]; 
-            m_df[1] += (- pow(m_omega0, 2) * init[0] + sin(m_omega1 * m_time)); 
+            m_df[1] = - pow(m_omega0, 2) * init[0] + sin(m_omega1 * m_time); 
             return m_df; 
         }
 

@@ -97,7 +97,7 @@ class ForcedOscillator : public ODE {
         std::vector<std::vector<double>> eval(const std::vector<std::vector<double>>& pos, const double& h = 0.001) override {
             reset_df(); 
             m_df[0] = pos[1]; 
-            m_df[1] -= (pow(m_omega0, 2) * pos[0] + sin(m_omega1 * m_time)); 
+            m_df[1] = - pow(m_omega0, 2) * pos[0] + sin(m_omega1 * m_time); 
             return m_df; 
         }
 
@@ -148,7 +148,7 @@ class DampedOscillator : public ODE {
         std::vector<std::vector<double>> eval(const std::vector<std::vector<double>>& pos, const double& h = 0.001) override {
             reset_df(); 
             m_df[0] = pos[1]; 
-            m_df[1] -= ((pow(m_omega, 2) * pos[0]) + (m_alpha * pos[1])); 
+            m_df[1] = - pow(m_omega, 2) * pos[0] - m_alpha * pos[1]; 
             return m_df; 
         }
 
@@ -203,7 +203,7 @@ class ForcedDampedOscillator : public ODE {
         std::vector<std::vector<double>> eval(const std::vector<std::vector<double>>& pos, const double& h = 0.001) override {
             reset_df(); 
             m_df[0] = pos[1]; 
-            m_df[1] += (sin(m_omega1 * m_time) - pow(m_omega0, 2) * pos[0] - m_alpha * pos[1]); 
+            m_df[1] = - pow(m_omega0, 2) * pos[0] - m_alpha * pos[1] + sin(m_omega1 * m_time); 
             return m_df; 
         }
 
