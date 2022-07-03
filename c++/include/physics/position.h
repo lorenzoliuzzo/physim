@@ -34,6 +34,8 @@ class Position {
         // constructors
         // =============================================
 
+        Position() {}
+
         Position(const std::vector<double>& coord, const std::vector<double>& vel) { m_pos[0] = coord; m_pos[1] = vel; }
 
         Position(const std::vector<std::vector<double>>& pos1) : m_pos{pos1} {}
