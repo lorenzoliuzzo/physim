@@ -2,7 +2,7 @@
 // author:          Lorenzo Liuzzo
 // email:           lorenzoliuzzo@outlook.com
 // description:     Mathematical functions
-// last updated:    02/07/2022
+// last updated:    03/07/2022
 
 
 #pragma once
@@ -14,11 +14,14 @@ class FunctionBase {
 
     public: 
     
+
         // =============================================
-        // destructor
+        // constructor and destructor
         // =============================================     
     
-        virtual ~FunctionBase() {}
+        FunctionBase() {}
+
+        ~FunctionBase() {}
 
     
         // =============================================
@@ -46,6 +49,50 @@ class FunctionBase {
         int signum(const double& x) const { return (x == 0. ? 0. : (x > 0 ? 1. : -1)); }
     
 }; 
+
+
+class Functor : public FunctionBase {
+
+    public:
+
+        char m_op; 
+        FunctionBase * m_f; 
+        FunctionBase * m_g;
+
+        Functor(const char& op, FunctionBase& f, FunctionBase& g) {
+            m_f = &f; 
+            m_g = &g;
+            m_op = op;
+        }
+        
+        ~Functor() {}
+
+        double eval(const double& x) const override {
+            switch (m_op) {
+                case '+':
+                    return m_f->eval(x) + m_g->eval(x);
+
+                case '-': 
+                    return m_f->eval(x) - m_g->eval(x);
+
+                case '*':
+                    return m_f->eval(x) * m_g->eval(x);
+
+                case '/': 
+                    return m_f->eval(x) / m_g->eval(x);
+                
+                case '^':
+                    return pow(m_f->eval(x), m_g->eval(x));
+
+                case 'c':
+                    return m_f->eval(m_g->eval(x));
+            }
+            return NAN;
+        }
+
+        void print_equation() const override {}
+        
+};
 
 
 class Square : public FunctionBase {
@@ -552,166 +599,4 @@ class Cosine : public FunctionBase {
         }
 
 }; 
-
-
-// class FunctionSum {
-
-//     private: 
-//         std::vector<FunctionBase> m_sum;
-//         double m_constant; 
-
-//     public:
-
-//         FunctionSum(std::vector<FunctionBase> functions, const double& c = 0) : m_sum{functions}, m_constant{c} {}
-
-//         ~FunctionSum() {}
-
-//         double eval(const double& x) const {
-//             double sum{m_constant}; 
-//             for (unsigned int i{}; i < m_sum.size(); i++) sum += m_sum[i].eval(x); 
-//             return sum; 
-//         }
-
-// }; 
-
-
-// class FunctionSub {
-
-//     private: 
-//         std::vector<FunctionBase> m_sub; 
-//         double m_constant; 
-
-//     public:
-
-//         FunctionSub(const std::vector<FunctionBase>& functions, const double& c = 0) : m_sub{functions}, m_constant{c} {}
-
-//         ~FunctionSub() {}
-
-//         double eval(const double& x) {
-//             double sub{m_constant}; 
-//             for (unsigned int i{}; i < m_sub.size(); i++) sub -= m_sub[i].eval(x); 
-//             return sub; 
-//         }
-
-// }; 
-
-
-
-// class FunctionDot {
-
-//     private: 
-//         std::vector<FunctionBase> m_dot;
-//         double m_constant; 
-
-//     public:
-
-//         FunctionDot(const std::vector<FunctionBase>& functions, const double& c = 1) : m_dot{functions}, m_constant{c} {}
-
-//         ~FunctionDot() {}
-
-//         double eval(const double& x) {
-//             double dot{}; 
-//             for (unsigned int i{}; i < m_dot.size(); i++) dot *= m_dot[i].eval(x); 
-//             return m_constant * dot; 
-//         }
-
-// }; 
-
-
-// class FunctionDiv {
-
-//     private: 
-//         std::vector<FunctionBase> m_div;
-//         double m_constant; 
-
-//     public:
-
-//         FunctionDiv(const std::vector<FunctionBase>& functions, const double& c = 1) : m_div{functions}, m_constant{c} {}
-
-//         ~FunctionDiv() {}
-
-//         double eval(const double& x) {
-//             double div{m_constant}; // + m_div[0].eval(x)}; 
-//             for (unsigned int i{1}; i < m_div.size(); i++) div /= m_div[i].eval(x); 
-//             return m_constant * div; 
-//         }
-
-// }; 
-
-
-// class FunctionPow {
-
-//     private: 
-//         std::vector<FunctionBase> m_div, 
-//         double m_constant; 
-
-//     public:
-
-//         FunctionDiv(const std::vector<FunctionBase>& functions, const double& c = 1) : m_div{functions}, m_constant{c} {}
-
-//         ~FunctionDiv() {}
-
-//         double eval(const double& x) {
-//             double div{m_constant + m_div[0].eval(x)}; 
-//             for (unsigned int i{1}; i < m_div.size(); i++) div /= m_div[i].eval(x); 
-//             return m_constant * div; 
-//         }
-
-// }; 
-
-
-// class FunctionCompose {
-
-//     private: 
-//         std::vector<FunctionBase> m_div, 
-//         double m_constant; 
-
-//     public:
-
-//         FunctionDiv(const std::vector<FunctionBase>& functions, const double& c = 1) : m_div{functions}, m_constant{c} {}
-
-//         ~FunctionDiv() {}
-
-//         double eval(const double& x) {
-//             double div{m_constant + m_div[0].eval(x)}; 
-//             for (unsigned int i{1}; i < m_div.size(); i++) div /= m_div[i].eval(x); 
-//             return m_constant * div; 
-//         }
-
-// }; 
-
-
-// class Function : public FunctionBase {
-
-//     private: 
-//         // =============================================
-//         // class members
-//         // =============================================   
-        
-//         std::vector<const FunctionBase&> m_functions; 
-    
-    
-//     public:
-         
-//         // =============================================
-//         // constructor and destructor
-//         // =============================================   
-  
-//         Function(std::vector<const FunctionBase&> f) : m_functions{f} {}
-    
-//         ~Function() {} 
-
-// };
-
-
-
-
-
-
-
-
-
-
-
-
 
