@@ -53,12 +53,23 @@ class FunctionBase {
 
 class Functor : public FunctionBase {
 
-    public:
+    private:
 
+        // =============================================
+        // class members
+        // =============================================
+    
         char m_op; 
         FunctionBase * m_f; 
         FunctionBase * m_g;
+    
+    
+    public:
 
+        // =============================================
+        // constructor and destructor
+        // =============================================     
+    
         Functor(const char& op, FunctionBase& f, FunctionBase& g) {
             m_f = &f; 
             m_g = &g;
@@ -66,7 +77,12 @@ class Functor : public FunctionBase {
         }
         
         ~Functor() {}
-
+    
+    
+        // =============================================
+        // eval methods
+        // =============================================
+    
         double eval(const double& x) const override {
             switch (m_op) {
                 case '+':
@@ -90,6 +106,11 @@ class Functor : public FunctionBase {
             return NAN;
         }
 
+        
+        // =============================================
+        // print methods
+        // =============================================
+    
         void print_equation() const override {}
         
 };
