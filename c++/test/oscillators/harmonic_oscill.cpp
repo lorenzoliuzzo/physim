@@ -32,6 +32,7 @@ int main() {
         time.push_back(oscill.get_time()); 
         coord_x.push_back(pos.get_coord_x());
         pos.set_position(oscill.euler(pos.get_position(), h)); 
+        oscill.increase_time(h);
     }
     end = std::chrono::system_clock::now();
     elapsed_seconds = end - start;
@@ -51,7 +52,8 @@ int main() {
     while (oscill.get_time() < tmax) {
         time.push_back(oscill.get_time()); 
         coord_x.push_back(pos.get_coord_x());
-        pos.set_position(oscill.euler(pos.get_position(), h)); 
+        pos.set_position(oscill.rk4(pos.get_position(), h)); 
+        oscill.increase_time(h);
     }    
     end = std::chrono::system_clock::now();
     elapsed_seconds = end - start;

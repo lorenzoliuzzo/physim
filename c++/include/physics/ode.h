@@ -31,10 +31,12 @@ class ODE {
 
 
         // =============================================
-        // useful methods
+        // time methods
         // =============================================
         
         double get_time() const { return m_time; }
+
+        void increase_time(const double& h) { m_time += h; } 
 
         void reset_time() { m_time = 0; }
 
@@ -52,7 +54,12 @@ class ODE {
 
         std::vector<std::vector<double>> euler(const std::vector<std::vector<double>>& pos, const double& h = 0.001) {
             std::vector<std::vector<double>> appo = pos + h * eval(pos, m_time); 
-            m_time += h; 
+            return appo; 
+        }
+
+        std::vector<std::vector<double>> euler_modified(const std::vector<std::vector<double>>& pos, const double& h = 0.001) {
+            std::vector<std::vector<double>> appo = pos + h * eval(pos, m_time); 
+            appo = pos + h * (eval(pos, m_time) + eval(appo, m_time + h)) / 2.; 
             return appo; 
         }
 
@@ -62,7 +69,6 @@ class ODE {
             k2 = eval(pos + k1 * h / 2., m_time + h / 2.);
             k3 = eval(pos + k2 * h / 2., m_time + h / 2.);
             k4 = eval(pos + k3 * h / 2., m_time + h / 2.);      
-            m_time += h; 
             return (pos + (k1 + k2 * 2. + k3 * 2. + k4) * (h / 6.)); 
         } 
 

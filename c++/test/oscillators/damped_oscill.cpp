@@ -36,6 +36,7 @@ int main() {
             coord_x.push_back(pos.get_coord_x());
         }
         pos.set_position(oscill.rk4(pos.get_position(), h)); 
+        oscill.increase_time(h);
         count++;
     }
     end = std::chrono::system_clock::now();
