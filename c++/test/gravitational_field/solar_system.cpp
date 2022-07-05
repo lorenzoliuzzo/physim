@@ -2,7 +2,7 @@
 // author:          Lorenzo Liuzzo
 // email:           lorenzoliuzzo@outlook.com
 // description:     Plot of Solar System planet's orbirts around the sun using ODE's methods.
-// last updated:    05/07/2022
+// last updated:    06/07/2022
 
 
 #include "../../include/physics/gravitational_field.h"
@@ -36,10 +36,9 @@ int main() {
     solar_system.add_object(saturn); 
     solar_system.add_object(uranus); 
     solar_system.add_object(neptune); 
-    std::cout << "Number of planets = " << solar_system.get_objects_count() << std::endl; 
-
+        
     unsigned int days_to_seconds{86400}, count{};
-    const double h{1.}; 
+    double h{10.}; 
     std::vector<double> coord_x{sun.get_coord_x()}, coord_y{sun.get_coord_y()};
     std::chrono::duration<double> elapsed_seconds;
     std::chrono::time_point<std::chrono::system_clock> start, end;
@@ -52,6 +51,10 @@ int main() {
     plot.plot(coord_x, coord_y, "Sun", Gnuplot::LineStyle::POINTS); 
     coord_x.clear(); 
     coord_y.clear();  
+    
+    std::cout << "\nSimulation started" << std::endl; 
+    std::cout << "Number of planets = " << solar_system.get_objects_count() << std::endl; 
+    start = std::chrono::system_clock::now();
 
     for (auto i : solar_system.get_objects()) { 
 
@@ -59,11 +62,8 @@ int main() {
         i.print_position(); 
 
         // Runge Kutta's method
-        std::cout << "\nSimulation started" << std::endl; 
-        start = std::chrono::system_clock::now();
-
         while (sun_gravity.get_time() < i.get_period() * days_to_seconds) {
-            if (count % 10000 == 0) {
+            if (count % 1000 == 0) {
                 coord_x.push_back(i.get_coord_x());
                 coord_y.push_back(i.get_coord_y());            
             }
@@ -76,23 +76,28 @@ int main() {
         elapsed_seconds = end - start;
         end_time = std::chrono::system_clock::to_time_t(end);
         
-        std::cout << "Simulation ended" << std::endl; 
-        std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n" << std::endl;
+        std::cout << "\nSimulation ended" << std::endl; 
+        std::cout << "elapsed time: " << elapsed_seconds.count() << " s" << std::endl;
         std::cout << "Final position: " << std::endl;
         i.print_position(); 
 
         std::cout << "Plot started" << std::endl; 
         plot.plot(coord_x, coord_y, i.get_name()); 
-        plot.show(); 
-        std::cout << "Plot ended" << std::endl; 
+        std::cout << "Plot ended\n" << std::endl; 
 
         sun_gravity.reset_time();
         count = 0; 
         coord_x.clear(); 
         coord_y.clear();
-          
+        h = h * 2; 
+
     }
+    end = std::chrono::system_clock::now();
+    elapsed_seconds = end - start;
+    end_time = std::chrono::system_clock::to_time_t(end);
     
+    std::cout << "\n\nSimulation ended" << std::endl; 
+    std::cout << "elapsed time: " << elapsed_seconds.count() << " s\n" << std::endl;
     plot.show(); 
     return 0; 
 

@@ -63,6 +63,5 @@ class GravitationalField : public ODE {
             return m_df; 
         }
 
-
 };
 

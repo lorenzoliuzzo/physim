@@ -72,6 +72,5 @@ class ODE {
             return (pos + (k1 + k2 * 2. + k3 * 2. + k4) * (h / 6.)); 
         } 
 
-
 };
 
