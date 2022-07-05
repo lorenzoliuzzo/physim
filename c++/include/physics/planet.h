@@ -1,7 +1,7 @@
 
 // author:          Lorenzo Liuzzo
 // email:           lorenzoliuzzo@outlook.com
-// description:     Basic physics system of generic objects.
+// description:     Solar System's planets. 
 // last updated:    05/07/2022
 
 
