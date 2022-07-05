@@ -20,7 +20,7 @@ class ODE {
 
         std::vector<std::vector<double>> m_df = zeros(3, 2); 
         
-        double m_time, m_h; 
+        double m_time{}, m_h; 
 
 
         // =============================================
@@ -37,8 +37,6 @@ class ODE {
         double get_time() const { return m_time; }
 
         void reset_time() { m_time = 0; }
-
-        void reset_df() { m_df = zeros(3, 2); }
 
 
         // =============================================

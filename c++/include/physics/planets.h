@@ -2,7 +2,7 @@
 // author:          Lorenzo Liuzzo
 // email:           lorenzoliuzzo@outlook.com
 // description:     Basic physics system of generic objects.
-// last updated:    03/07/2022
+// last updated:    05/07/2022
 
 
 #include "celestial_body.h"
@@ -30,15 +30,78 @@ class Planet : public CelestialBody {
                 set_mass(1.98844E30);
                 set_radius(695700);
             }
-            
+
+            if (name == "Mercury") { 
+                set_mass(0.33010E24);
+                set_radius(2440.5);
+                m_coord_afelio = 69.818E6;
+                m_coord_perielio = 46E6;
+                m_vel_afelio = 38.86;
+                m_vel_perielio = 58.98;
+            }
+    
+            if (name == "Venus") { 
+                set_mass(4.8673E24);
+                set_radius(6051.8);
+                m_coord_afelio = 108.941E6;
+                m_coord_perielio = 107.480E6;
+                m_vel_afelio = 34.79;
+                m_vel_perielio = 35.26;
+            }       
+
             if (name == "Earth") { 
-                set_mass(5.972E24);
-                set_radius(6378);
-                m_coord_afelio = 152.098E6; 
-                m_coord_perielio = 147.098E6; 
+                set_mass(5.9722E24);
+                set_radius(6378.137);
+                m_coord_afelio = 152.100E6; 
+                m_coord_perielio = 147.095E6; 
                 m_vel_afelio = 29.2911; 
                 m_vel_perielio = 30.2865;
             }
+            
+            if (name == "Mars") { 
+                set_mass(0.64169E24);
+                set_radius(3396.2);
+                m_coord_afelio = 249.261E6;
+                m_coord_perielio = 206.650E6;
+                m_vel_afelio = 21.97;
+                m_vel_perielio = 26.50;
+            }  
+
+            if (name == "Jupiter") { 
+                set_mass(1898.13E24);
+                set_radius(71492);
+                m_coord_afelio = 816.363E6;
+                m_coord_perielio = 740.595E6;
+                m_vel_afelio = 12.44;
+                m_vel_perielio = 13.72;
+            }  
+
+            if (name == "Saturn") { 
+                set_mass(568.32E24);
+                set_radius(60268);
+                m_coord_afelio = 1506.527E6;
+                m_coord_perielio = 1357.554E6;
+                m_vel_afelio = 9.09;
+                m_vel_perielio = 10.18;
+            }  
+
+            if (name == "Uranus") { 
+                set_mass(86.811E24);
+                set_radius(25559);
+                m_coord_afelio = 3001.390E6;
+                m_coord_perielio = 2732.696E6;
+                m_vel_afelio = 6.49;
+                m_vel_perielio = 7.11;
+            }  
+
+            if (name == "Neptune") { 
+                set_mass(102.409E24);
+                set_radius(24764);
+                m_coord_afelio = 4558.857E6;
+                m_coord_perielio = 4471.050E6;
+                m_vel_afelio = 5.37;
+                m_vel_perielio = 5.50;
+            }  
 
         }
 
@@ -65,54 +128,12 @@ class Planet : public CelestialBody {
 }; 
 
 
-
-
-
-
-
-
-
-
-
-// class Mercurio : public Planet {
-//   public: 
-//     Mercurio() { 
-//         CelestialBody();
-//         setMassa(0.330E24);
-//         setRaggio(2439);
-//         setNome("Mercurio");
-//     }
-
-//     double getAfelio() const { return m_afelio; }
-//     double getPerielio() const { return m_perielio; }
-
-//   private:
-//     const double m_afelio{69.8E6}, m_perielio{46E6}; 
-// }; 
-
-// class Venere : public Planet {
-//   public:
-//     Venere() { 
-//         CelestialBody();
-//         setMassa(4.87E24);
-//         setRaggio(6502);
-//         setNome("Venere");
-//     } 
-
-//     double getAfelio() const { return m_afelio; }
-//     double getPerielio() const { return m_perielio; }
-
-//   private:
-//     const double m_afelio{108.9E6}, m_perielio{107.5E6}; 
-// }; 
-
-
 // class Luna : public Planet {
 //  public:
 //    Luna() { 
 //       CelestialBody();
-//       setMassa(0.073E24);
-//       setRaggio(1737);
+//       set_mass(0.073E24);
+//       set_radius(1737);
 //       setNome("Luna");
 //    } 
 
@@ -126,97 +147,3 @@ class Planet : public CelestialBody {
 //    const double m_vapogeo{0.971}, m_vperigeo{1.083};
 // }; 
 
-// class Marte : public Planet {
-//  public:
-//    Marte() { 
-//       CelestialBody();
-//       setMassa(0.642E24);
-//       setRaggio(3396);
-//       setNome("Marte");
-//    } 
-
-//    double getAfelio() const { return m_afelio; }
-//    double getPerielio() const { return m_perielio; }
-
-//  private:
-//    const double m_afelio{249.3E6}, m_perielio{206.7E6}; 
-// }; 
-
-// class Giove : public Planet {
-//  public:
-//    Giove() { 
-//       CelestialBody();
-//       setMassa(1898E24);
-//       setRaggio(71492);
-//       setNome("Giove");
-//    } 
-
-//    double getAfelio() const { return m_afelio; }
-//    double getPerielio() const { return m_perielio; }
-
-//  private:
-//    const double m_afelio{816.4E6}, m_perielio{740.6E6}; 
-// }; 
-
-// class Saturno : public Planet {
-//  public:
-//    Saturno() { 
-//       CelestialBody();
-//       setMassa(568E24);
-//       setRaggio(60268);
-//       setNome("Saturno");
-//    } 
-
-//    double getAfelio() const { return m_afelio; }
-//    double getPerielio() const { return m_perielio; }
-
-//  private:
-//    const double m_afelio{1506.5E6}, m_perielio{1357.6E6}; 
-// }; 
-
-// class Urano : public Planet {
-//  public:
-//    Urano() { 
-//       CelestialBody();
-//       setMassa(86.8E24);
-//       setRaggio(25559);
-//       setNome("Urano");
-//    } 
-
-//    double getAfelio() const { return m_afelio; }
-//    double getPerielio() const { return m_perielio; }
-
-//  private:
-//    const double m_afelio{3001.4E6}, m_perielio{2732.7E6}; 
-// }; 
-
-// class Nettuno : public Planet {
-//  public:
-//    Nettuno() { 
-//       CelestialBody();
-//       setMassa(102E24);
-//       setRaggio(24764);
-//       setNome("Nettuno");
-//    } 
-//    double getAfelio() const { return m_afelio; }
-//    double getPerielio() const { return m_perielio; }
-
-//  private:
-//    const double m_afelio{4558.9E6}, m_perielio{4471.1E6}; 
-// }; 
-
-// class Plutone : public Planet {
-//  public:
-//    Plutone() { 
-//       CelestialBody();
-//       setMassa(0.0130E24);
-//       setRaggio(1188);
-//       setNome("Plutone");
-//    } 
-
-//    double getAfelio() const { return m_afelio; }
-//    double getPerielio() const { return m_perielio; }
-
-//  private:
-//    const double m_afelio{7375.9E6}, m_perielio{4436.8E6}; 
-// }; 

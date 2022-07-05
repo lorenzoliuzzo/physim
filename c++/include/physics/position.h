@@ -36,6 +36,8 @@ class Position {
 
         Position() {}
 
+        Position(const std::vector<double>& coord) { m_pos[0] = coord; }
+
         Position(const std::vector<double>& coord, const std::vector<double>& vel) { m_pos[0] = coord; m_pos[1] = vel; }
 
         Position(const std::vector<std::vector<double>>& pos1) : m_pos{pos1} {}
@@ -163,13 +165,13 @@ class Position {
         // =============================================
 
         void print_coordinates() const {
-            std::cout << "\nCoordinates:  ";
+            std::cout << "Coordinates:  ";
             for (auto i : m_pos[0]) std::cout << "[" << i << "] ";
             std::cout << std::endl;
         }
 
         void print_velocity() const {
-            std::cout << "\nVelocity:  ";
+            std::cout << "Velocity:     ";
             for (auto i : m_pos[1]) std::cout << "[" << i << "] ";
             std::cout << std::endl;        
         }
