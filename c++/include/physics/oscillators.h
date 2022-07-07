@@ -26,7 +26,7 @@ class HarmonicOscillator : public ODE {
         // constructors and destructor
         // =============================================
         
-        HarmonicOscillator(const double& omega, const double& time = 0) : m_omega{omega} { ODE::m_time = time; }
+        HarmonicOscillator(const double& omega, const double& time = 0) : m_omega{omega} { Time::m_time = time; }
         
         ~HarmonicOscillator() {}
 
@@ -71,7 +71,7 @@ class ForcedOscillator : public ODE {
         // =============================================
         
         ForcedOscillator(const double& omega0, const double& omega1, const double& time = 0) : 
-            m_omega0{omega0}, m_omega1{omega1} { ODE::m_time = time; }
+            m_omega0{omega0}, m_omega1{omega1} { Time::m_time = time; }
         
         ~ForcedOscillator() {}
 
@@ -95,7 +95,7 @@ class ForcedOscillator : public ODE {
 
         std::vector<std::vector<double>> eval(const std::vector<std::vector<double>>& pos, const double& h = 0.001) override {
             m_df[0] = pos[1]; 
-            m_df[1] = - pow(m_omega0, 2) * pos[0] + sin(m_omega1 * m_time); 
+            m_df[1] = - pow(m_omega0, 2) * pos[0] + sin(m_omega1 * get_time()); 
             return m_df; 
         }
 
@@ -121,7 +121,7 @@ class DampedOscillator : public ODE {
         // =============================================
         
         DampedOscillator(const double& omega, const double& alpha, const double& time = 0) : 
-            m_omega{omega}, m_alpha{alpha} { ODE::m_time = time; }
+            m_omega{omega}, m_alpha{alpha} { Time::m_time = time; }
 
         ~DampedOscillator() {}
 
@@ -171,7 +171,7 @@ class ForcedDampedOscillator : public ODE {
         // =============================================
         
         ForcedDampedOscillator(const double& omega0, const double& omega1, const double& alpha, const double& time = 0) : 
-            m_omega0{omega0}, m_omega1{omega1}, m_alpha{alpha} { ODE::m_time = time; }
+            m_omega0{omega0}, m_omega1{omega1}, m_alpha{alpha} { Time::m_time = time; }
 
         ~ForcedDampedOscillator() {}
 
@@ -199,7 +199,7 @@ class ForcedDampedOscillator : public ODE {
 
         std::vector<std::vector<double>> eval(const std::vector<std::vector<double>>& pos, const double& h = 0.001) override {
             m_df[0] = pos[1]; 
-            m_df[1] = - pow(m_omega0, 2) * pos[0] - m_alpha * pos[1] + sin(m_omega1 * m_time); 
+            m_df[1] = - pow(m_omega0, 2) * pos[0] - m_alpha * pos[1] + sin(m_omega1 * get_time()); 
             return m_df; 
         }
 

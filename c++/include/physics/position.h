@@ -6,9 +6,7 @@
 
 
 #pragma once
-#include <iostream>
-#include <vector>
-#include <cmath>
+#include "../math/vector_algebra.h"
 
 
 class Position {
