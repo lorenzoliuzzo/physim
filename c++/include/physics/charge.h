@@ -45,22 +45,26 @@ class Charge : public Position {
         // set and get methods
         // =============================================
 
-        void set_charge(const double& charge) { m_charge = charge; }
+        inline void set_charge(const double& charge) { m_charge = charge; }
 
-        double get_charge() const { return m_charge; }
+        inline double get_charge() const { return m_charge; }
 
-        void set_permittivity(const double& permittivity) { m_permittivity = permittivity; }
+        inline void print_charge() const { std::cout << "Charge = " << get_charge() << std::endl; }
 
-        double get_permittivity() const { return m_permittivity; }
+        inline void set_permittivity(const double& permittivity) { m_permittivity = permittivity; }
+
+        inline double get_permittivity() const { return m_permittivity; }
         
+        inline void print_permittivity() const { std::cout << "Permittivity = " << get_permittivity() << std::endl; }
+
 
         // =============================================
         // electric methods
         // =============================================
 
-        void activate_electric_field() { m_electric_field = true; }
+        inline void activate_electric_field() { m_electric_field = true; }
 
-        void deactivate_electric_field() { m_electric_field = false; }
+        inline void deactivate_electric_field() { m_electric_field = false; }
 
         std::vector<double> electric_attraction(const std::vector<double>& coord1, const char* udm = "C") {
             if (m_electric_field == false) {

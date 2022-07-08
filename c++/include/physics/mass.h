@@ -7,7 +7,6 @@
 
 
 #include "position.h"
-#include "ode.h"
 
 
 #define G 6.6743015e-11 // udm = [m^3 kg^-1 s^-1]
@@ -45,16 +44,18 @@ class Mass : public Position {
 
         void set_mass(const double& mass) { m_mass = mass; }
 
-        double get_mass() const { return m_mass; }
+        inline double get_mass() const { return m_mass; }
+
+        inline void print_mass() const { std::cout << "Mass = " << get_mass() << std::endl; }
 
 
         // =============================================
         // gravitational methods
         // =============================================
 
-        void activate_gravitational_field() { m_gravitational_field = true; }
+        inline void activate_gravitational_field() { m_gravitational_field = true; }
 
-        void deactivate_gravitational_field() { m_gravitational_field = false; }
+        inline void deactivate_gravitational_field() { m_gravitational_field = false; }
 
         std::vector<double> gravitational_attraction(const std::vector<double>& coord1, const char* udm = "m") {
             if (m_gravitational_field == false) {
