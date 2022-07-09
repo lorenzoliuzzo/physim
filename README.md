@@ -1,4 +1,4 @@
 # physim
-c++ and python code for physics simulations.
+c++ code for physics simulations.
 
 
