@@ -3,16 +3,16 @@
 // email:           lorenzoliuzzo@outlook.com
 // description:     Mass(class) defining one of the most common object member and 
 //                  the source of the gravitational field.
-// last updated:    08/07/2022
+// last updated:    10/07/2022
 
 
-#include "position.h"
+#include "coordinates.h"
 
 
-#define G 6.6743015e-11 // udm = [m^3 kg^-1 s^-1]
+#define G 6.6743015e-11 // um = [m^3 kg^-1 s^-1]
 
-
-class Mass : public Position {
+ 
+class Mass : public Coordinates {
 
     private: 
 
@@ -22,7 +22,13 @@ class Mass : public Position {
 
         double m_mass;
 
-        bool m_gravitational_field;
+        const char* m_mass_um{"g"}; 
+
+        const char* m_mass_um_prefix; 
+        
+        bool m_gravitational_field = false;
+
+        std::vector<double> m_gravitational_attraction = zeros(3); 
 
 
     public: 
@@ -31,9 +37,11 @@ class Mass : public Position {
         // constructors and destructor
         // =============================================
         
-        Mass(const double& mass, const std::vector<double>& coord = zeros(3)) : m_mass{mass}, Position(coord) {}
+        Mass(const double& mass, const char* um_prefix = "") : m_mass{mass}, m_mass_um_prefix{um_prefix}, Coordinates(zeros(3)) {}
 
-        Mass(const double& mass, const std::vector<std::vector<double>>& pos = zeros(3, 2)) : m_mass{mass}, Position(pos) {}
+        Mass(const double& mass, const std::vector<double>& coord, const char* mass_um_prefix = "", const char* coord_udm_prefix = "") : m_mass{mass}, m_mass_um_prefix{mass_um_prefix}, Coordinates(coord, coord_udm_prefix) {}
+
+        Mass(const double& mass, const Coordinates& coord, const char* mass_um_prefix = "") : m_mass{mass}, m_mass_um_prefix{mass_um_prefix}, Coordinates(coord) {}
 
         ~Mass() {}
 
@@ -44,35 +52,51 @@ class Mass : public Position {
 
         void set_mass(const double& mass) { m_mass = mass; }
 
-        inline double get_mass() const { return m_mass; }
+        void set_mass_um_prefix(const char* um_prefix) { m_mass_um_prefix = um_prefix; }
+        
+        double get_mass() const { return m_mass; }
 
-        inline void print_mass() const { std::cout << "Mass = " << get_mass() << std::endl; }
+        const char* get_mass_um() const { return m_mass_um; }
 
+        const char* get_mass_um_prefix() const { return m_mass_um_prefix; }
 
+      
         // =============================================
         // gravitational methods
         // =============================================
 
-        inline void activate_gravitational_field() { m_gravitational_field = true; }
+        void activate_gravitational_field() { m_gravitational_field = true; }
 
-        inline void deactivate_gravitational_field() { m_gravitational_field = false; }
+        void deactivate_gravitational_field() { m_gravitational_field = false; }
 
-        std::vector<double> gravitational_attraction(const std::vector<double>& coord1, const char* udm = "m") {
+        void reset_gravitational_attraction() { m_gravitational_attraction.clear(); }
+
+        void set_gravitational_attraction(const std::vector<double>& attraction) { m_gravitational_attraction = attraction; }
+
+        std::vector<double> get_gravitational_attraction() const { return m_gravitational_attraction; }
+
+        std::vector<double> gravitational_attraction(const std::vector<double>& coord1) {
             if (m_gravitational_field == false) {
                 std::cout << "Before evaluating the gravitational attraction given by this mass in these coordinates, you must activate the gravitational field." << std::endl; 
                 exit(-11);
             }
             if (coord1 == get_coordinates()) return zeros(3);
-            double phi{get_phi_coord(coord1)}; 
-            std::vector<double> direction{cos(phi), sin(phi), 0}; 
-            std::vector<double> appo = direction * (- G * m_mass / pow(get_distance(coord1), 2));
-            if (udm == "km") return appo * 1.e-9;
-            if (udm == "dm") return appo * 1.e3; 
-            if (udm == "cm") return appo * 1.e6; 
-            if (udm == "mm") return appo * 1.e9; 
-            if (udm == "microm") return appo * 1.e18;
-            if (udm == "nm") return appo * 1.e27;
-            else return appo;
+            else return get_direction(coord1) * (- G * m_mass / pow(get_distance(coord1), 2));
         }
 
+
+        // =============================================
+        // print methods
+        // =============================================
+        
+        void print_mass() const { 
+            std::cout << "Mass = " << get_mass() << " " << get_mass_um_prefix() << get_mass_um() << std::endl;
+        }
+
+        void print_gravitational_attraction() const { 
+            std::cout << "Gravitational attraction: " << std::endl; 
+            for (auto i : get_gravitational_attraction()) std::cout << "[" << i << "]\t";
+            std::cout << std::endl; 
+        }
+    
 };

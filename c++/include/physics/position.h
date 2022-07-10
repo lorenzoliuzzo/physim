@@ -19,11 +19,11 @@ class Position : public Coordinates, Velocity {
         // constructors
         // =============================================
 
-        Position() {}
+        Position() : Coordinates(), Velocity() {}
 
-        Position(const std::vector<double>& coord, const std::vector<double>& vel) : Coordinates(coord), Velocity(vel) {}
+        Position(const std::vector<double>& coord, const std::vector<double>& vel, const char* coord_um_prefix = "", const char* vel_um_prefix = "") : Coordinates(coord, coord_um_prefix), Velocity(vel, vel_um_prefix) {}
 
-        Position(const std::vector<std::vector<double>>& pos) : Coordinates(pos[0]), Velocity(pos[1]) {}
+        Position(const std::vector<std::vector<double>>& pos, const char* coord_um_prefix = "", const char* vel_um_prefix = "") : Coordinates(pos[0], coord_um_prefix), Velocity(pos[1], vel_um_prefix) {}
         
         Position(const Coordinates& coord, const Velocity& vel) : Coordinates(coord), Velocity(vel) {}
         
@@ -61,7 +61,7 @@ class Position : public Coordinates, Velocity {
         // =============================================
 
         void print_position() const {
-            std::cout << "position: " << std::endl;
+            std::cout << "\nposition: " << std::endl;
             print_coordinates(); 
             print_velocity();
         }

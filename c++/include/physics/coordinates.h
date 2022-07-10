@@ -2,15 +2,14 @@
 // author:          Lorenzo Liuzzo
 // email:           lorenzoliuzzo@outlook.com
 // description:     Coordinates(class) for placing and keeping track of an object in a 3D system.
-// last updated:    09/07/2022
+// last updated:    10/07/2022
 
 
 #pragma once
 #include "../math/vector_algebra.h"
-#include "../physics/um.h"
 
 
-class Coordinates : public UM {
+class Coordinates {
 
     protected: 
 
@@ -22,15 +21,20 @@ class Coordinates : public UM {
         
         std::vector<double> m_coordinates = zeros(3);
 
+        const char* m_mass_um{"m"}; 
+
+        const char* m_mass_um_prefix; 
+
+
     public:  
 
         // =============================================
         // constructors
         // =============================================
 
-        Coordinates() : UM("m") {}
+        Coordinates(const char* um_prefix = "") : m_mass_um_prefix{um_prefix} {}
 
-        Coordinates(const std::vector<double>& coord, const char* udm_prefix = "") : m_coordinates{coord}, UM("m", udm_prefix) {}
+        Coordinates(const std::vector<double>& coord, const char* um_prefix = "") : m_coordinates{coord}, m_mass_um_prefix{um_prefix} {}
 
         
         // =============================================
@@ -44,6 +48,8 @@ class Coordinates : public UM {
         void set_coordinate_y(const double& y) { m_coordinates[1] = y;  }
 
         void set_coordinate_z(const double& z) { m_coordinates[2] = z; }
+
+        void set_mass_um_prefix(const char* um_prefix) { m_mass_um_prefix = um_prefix; }
         
         
         // =============================================
@@ -81,23 +87,26 @@ class Coordinates : public UM {
         double get_theta(const std::vector<double>& coord) const { return acos((coord[2] - m_coordinates[2]) / get_distance(coord)); }
 
         std::vector<double> get_direction() const {
-            return {cos(get_phi()), sin(get_phi()), cos(get_theta())};
+            return {cos(get_phi()), sin(get_phi()), m_coordinates[2] / get_magnitude()};
         } 
 
         std::vector<double> get_direction(const std::vector<double>& coord1) const {
-            return {cos(get_phi(coord1)), sin(get_phi(coord1)), cos(get_theta(coord1))};
+            return {cos(get_phi(coord1)), sin(get_phi(coord1)), (coord1[2] - m_coordinates[2]) / get_distance(coord1)};
         } 
         
+        const char* get_mass_um() const { return m_mass_um; }
+
+        const char* get_mass_um_prefix() const { return m_mass_um_prefix; }
+
 
         // =============================================
         // print methods
         // =============================================
 
         void print_coordinates() const {
-            std::cout << "coordinates: ";
-            UM::print_um();
+            std::cout << "coordinates: " << std::endl;
             for (auto i : m_coordinates) std::cout << "[" << i << "]\t";
-            std::cout << std::endl; 
+            std::cout << get_mass_um_prefix() << get_mass_um() << std::endl; 
         }
 
 };

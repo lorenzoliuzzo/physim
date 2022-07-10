@@ -7,10 +7,9 @@
 
 #pragma once
 #include "../math/vector_algebra.h"
-#include "../physics/um.h"
 
 
-class Velocity : public UM {
+class Velocity {
 
     protected: 
 
@@ -22,15 +21,20 @@ class Velocity : public UM {
         
         std::vector<double> m_velocity = zeros(3);
 
+        const char* m_vel_um{"m"}; 
+
+        const char* m_vel_um_prefix; 
+    
+
     public:  
 
         // =============================================
         // constructors
         // =============================================
 
-        Velocity() : UM("m/s") {}
+        Velocity(const char* um_prefix = "") : m_vel_um{"m/s"}, m_vel_um_prefix{um_prefix} {}
 
-        Velocity(const std::vector<double>& vel, const char* udm_prefix = "") : m_velocity{vel}, UM("m/s", udm_prefix) {}
+        Velocity(const std::vector<double>& vel, const char* um_prefix = "") : m_velocity{vel}, m_vel_um{"m/s"}, m_vel_um_prefix{um_prefix} {}
 
         
         // =============================================
@@ -45,7 +49,9 @@ class Velocity : public UM {
 
         void set_velocity_z(const double& z) { m_velocity[2] = z; }
         
-        
+        void set_vel_um_prefix(const char* um_prefix) { m_vel_um_prefix = um_prefix; }
+
+
         // =============================================
         // get methods
         // =============================================
@@ -72,16 +78,19 @@ class Velocity : public UM {
             return {cos(get_phi()), sin(get_phi()), cos(get_theta())};
         } 
        
+        const char* get_vel_um() const { return m_vel_um; }
+
+        const char* get_vel_um_prefix() const { return m_vel_um_prefix; }
+
 
         // =============================================
         // print methods
         // =============================================
 
         void print_velocity() const {
-            std::cout << "velocity: ";
-            UM::print_um();
+            std::cout << "velocity: " << std::endl;
             for (auto i : m_velocity) std::cout << "[" << i << "]\t";
-            std::cout << std::endl; 
+            std::cout << get_vel_um_prefix() << get_vel_um() << std::endl; 
         }
 
 };
