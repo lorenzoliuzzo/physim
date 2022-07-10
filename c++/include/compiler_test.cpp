@@ -29,11 +29,6 @@
 
 int main() {
 
-    Planet sun("Sun"), earth("Earth"); 
-    sun.print_body();
-    earth.print_body(); 
-    earth.set_position({earth.get_coord_aphelion(), 0., 0.}, {0., earth.get_vel_aphelion(), 0.}); 
-    earth.print_body(); 
 
     return 0; 
 }
