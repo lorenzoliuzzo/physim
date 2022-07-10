@@ -2,7 +2,7 @@
 // author:          Lorenzo Liuzzo
 // email:           lorenzoliuzzo@outlook.com
 // description:     Simple Time(class) and Timer(class) for keeping track of the inexorable passing of time.
-// last updated:    07/07/2022
+// last updated:    10/07/2022
 
 
 #pragma once
