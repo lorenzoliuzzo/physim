@@ -2,11 +2,12 @@
 // author:          Lorenzo Liuzzo
 // email:           lorenzoliuzzo@outlook.com
 // description:     Basic physics system of generic objects.
-// last updated:    07/07/2022
+// last updated:    10/07/2022
 
 
 #pragma once
 #include "../math/vector_algebra.h"
+#include "time.h"
 
 
 template <typename T> 
@@ -42,9 +43,8 @@ class System : public Time {
 
         int get_objects_count() const { return m_objects.size(); }
 
-        std::vector<T> &get_objects() { return m_objects; }
+        std::vector<T>& get_objects() { return m_objects; }
 
-        T &get_object(unsigned pos) { return m_objects[pos]; }
+        T& get_object(unsigned pos) { return m_objects[pos]; }
         
 };
-

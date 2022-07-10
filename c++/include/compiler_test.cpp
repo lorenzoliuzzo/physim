@@ -9,15 +9,21 @@
 #include "math/vector_algebra.h"
 
 
-// physics
+// physics tools
+#include "physics/tools/charge.h"
+#include "physics/tools/coordinates.h"
+#include "physics/tools/mass.h"
+#include "physics/tools/ode.h"
+#include "physics/tools/position.h"
+#include "physics/tools/system.h"
+#include "physics/tools/time.h"
+#include "physics/tools/velocity.h"
 
-#include "physics/celestial_body.h"
-#include "physics/ode.h"
-#include "physics/oscillators.h"
-#include "physics/particle.h"
-#include "physics/position.h"
-#include "physics/system.h"
-#include "physics/time.h"
+
+// physics objects
+#include "physics/objects/celestial_body.h"
+#include "physics/objects/oscillators.h"
+#include "physics/objects/particle.h"
 
 
 int main() {

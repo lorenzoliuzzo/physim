@@ -9,7 +9,7 @@
 #include "position.h"        
 
 
-class CelestialBody : public Position {
+class CelestialBody : public Mass, Position {
 
     protected: 
 
@@ -17,8 +17,10 @@ class CelestialBody : public Position {
         // class member
         // =============================================
 
-        double m_mass, m_radius;
+        double m_radius;
+
         const char* m_name; 
+        
         const char* m_type; 
 
 

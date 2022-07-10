@@ -6,8 +6,7 @@
 
 
 #pragma once
-#include "../math/vector_algebra.h"
-#include "position.h"
+#include "../math/vector_algebra.h" 
 #include "time.h"
 
 
