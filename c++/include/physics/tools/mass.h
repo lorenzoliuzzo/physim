@@ -14,7 +14,7 @@
  
 class Mass : public Coordinates {
 
-    private: 
+    protected: 
 
         // =============================================
         // class member
@@ -71,7 +71,7 @@ class Mass : public Coordinates {
 
         void reset_gravitational_attraction() { m_gravitational_attraction.clear(); }
 
-        void set_gravitational_attraction(const std::vector<double>& attraction) { m_gravitational_attraction = attraction; }
+        void add_gravitational_attraction(const std::vector<double>& attraction) { m_gravitational_attraction += attraction; }
 
         std::vector<double> get_gravitational_attraction() const { return m_gravitational_attraction; }
 
@@ -81,7 +81,8 @@ class Mass : public Coordinates {
                 exit(-11);
             }
             if (coord1 == get_coordinates()) return zeros(3);
-            else return get_direction(coord1) * (- G * m_mass / pow(get_distance(coord1), 2));
+            std::vector<double> appo = get_direction(coord1) * (- G * m_mass / pow(get_distance(coord1), 2));
+            return appo; 
         }
 
 
@@ -90,11 +91,11 @@ class Mass : public Coordinates {
         // =============================================
         
         void print_mass() const { 
-            std::cout << "Mass = " << get_mass() << " " << get_mass_um_prefix() << get_mass_um() << std::endl;
+            std::cout << "- mass = " << get_mass() << " " << get_mass_um_prefix() << get_mass_um() << std::endl;
         }
 
         void print_gravitational_attraction() const { 
-            std::cout << "Gravitational attraction: " << std::endl; 
+            std::cout << "- gravitational attraction: " << std::endl; 
             for (auto i : get_gravitational_attraction()) std::cout << "[" << i << "]\t";
             std::cout << std::endl; 
         }

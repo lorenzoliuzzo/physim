@@ -4,6 +4,7 @@
 // math
 #include "math/functions.h"
 #include "math/integral.h"
+#include "math/ode.h"
 #include "math/random_generator.h"
 #include "math/statistics.h"
 #include "math/vector_algebra.h"
@@ -13,8 +14,8 @@
 #include "physics/tools/charge.h"
 #include "physics/tools/coordinates.h"
 #include "physics/tools/mass.h"
-#include "physics/tools/ode.h"
 #include "physics/tools/position.h"
+#include "physics/tools/shape.h"
 #include "physics/tools/system.h"
 #include "physics/tools/time.h"
 #include "physics/tools/velocity.h"
@@ -22,10 +23,17 @@
 
 // physics objects
 #include "physics/objects/celestial_body.h"
-#include "physics/objects/oscillators.h"
-#include "physics/objects/particle.h"
+// #include "physics/objects/oscillators.h"
+// #include "physics/objects/particle.h"
 
 
 int main() {
+
+    Planet sun("Sun"), earth("Earth"); 
+    sun.print_body();
+    earth.print_body(); 
+    earth.set_position({earth.get_coord_aphelion(), 0., 0.}, {0., earth.get_vel_aphelion(), 0.}); 
+    earth.print_body(); 
+
     return 0; 
 }

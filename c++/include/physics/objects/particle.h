@@ -6,7 +6,7 @@
 
 
 #pragma once
-#include "position.h"
+#include "../tools/position.h"
 
 #define   e_mass  9.109383701528e-31     
 #define   p_mass  1.672621923695e-27

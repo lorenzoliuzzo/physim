@@ -6,7 +6,7 @@
 
 
 #pragma once
-#include "../math/vector_algebra.h"
+#include "../../math/vector_algebra.h"
 
 
 class Coordinates {
@@ -21,9 +21,9 @@ class Coordinates {
         
         std::vector<double> m_coordinates = zeros(3);
 
-        const char* m_mass_um{"m"}; 
+        const char* m_coord_um{"m"}; 
 
-        const char* m_mass_um_prefix; 
+        const char* m_coord_um_prefix; 
 
 
     public:  
@@ -32,9 +32,9 @@ class Coordinates {
         // constructors
         // =============================================
 
-        Coordinates(const char* um_prefix = "") : m_mass_um_prefix{um_prefix} {}
+        Coordinates(const char* um_prefix = "") : m_coord_um_prefix{um_prefix} {}
 
-        Coordinates(const std::vector<double>& coord, const char* um_prefix = "") : m_coordinates{coord}, m_mass_um_prefix{um_prefix} {}
+        Coordinates(const std::vector<double>& coord, const char* um_prefix = "") : m_coordinates{coord}, m_coord_um_prefix{um_prefix} {}
 
         
         // =============================================
@@ -49,7 +49,7 @@ class Coordinates {
 
         void set_coordinate_z(const double& z) { m_coordinates[2] = z; }
 
-        void set_mass_um_prefix(const char* um_prefix) { m_mass_um_prefix = um_prefix; }
+        void set_coord_um_prefix(const char* um_prefix) { m_coord_um_prefix = um_prefix; }
         
         
         // =============================================
@@ -94,9 +94,9 @@ class Coordinates {
             return {cos(get_phi(coord1)), sin(get_phi(coord1)), (coord1[2] - m_coordinates[2]) / get_distance(coord1)};
         } 
         
-        const char* get_mass_um() const { return m_mass_um; }
+        const char* get_coord_um() const { return m_coord_um; }
 
-        const char* get_mass_um_prefix() const { return m_mass_um_prefix; }
+        const char* get_coord_um_prefix() const { return m_coord_um_prefix; }
 
 
         // =============================================
@@ -104,9 +104,9 @@ class Coordinates {
         // =============================================
 
         void print_coordinates() const {
-            std::cout << "coordinates: " << std::endl;
+            std::cout << "- coordinates = ";
             print(m_coordinates); 
-            std::cout << get_mass_um_prefix() << get_mass_um() << std::endl; 
+            std::cout << get_coord_um_prefix() << get_coord_um() << std::endl; 
         }
 
 };

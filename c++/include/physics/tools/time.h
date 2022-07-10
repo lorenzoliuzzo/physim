@@ -20,12 +20,27 @@ class Time {
 
         double m_time; 
 
+        const char* m_time_um{"s"}; 
         
+        const char* m_time_um_prefix{}; 
+
+
+        // =============================================
+        // set and get methods
+        // =============================================
+        
+        void set_time_um_prefix(const char* um_prefix) { m_time_um_prefix = um_prefix; }
+
+        const char* get_time_um() const { return m_time_um; }
+
+        const char* get_time_um_prefix() const { return m_time_um_prefix; }
+
+
         // =============================================
         // constructor and destructor
         // =============================================   
 
-        Time(double time = 0) : m_time{time} {}
+        Time(double time = 0, const char* um_prefix = "") : m_time{time}, m_time_um_prefix{um_prefix} {}
 
         ~Time() {}
 
@@ -43,7 +58,7 @@ class Time {
 }; 
 
 
-class Timer {
+class Timer : public Time {
 
     public:
 
@@ -60,7 +75,7 @@ class Timer {
         // constructor and destructor
         // =============================================   
 
-        Timer() {}
+        Timer(const char* um_prefix = "") : Time(0., um_prefix) {}
 
         ~Timer() {}
 
@@ -91,8 +106,8 @@ class Timer {
         // print time methods
         // =============================================   
         
-        void print_elapsed_time() { std::cout << "Elapsed time = " << get_elapsed_time() << " s" << std::endl; }
+        void print_elapsed_time() { std::cout << "Elapsed time = " << get_elapsed_time() << " " << get_time_um_prefix() << get_time_um() << std::endl; }
 
-        void print_duration() { std::cout << "Duration time = " << get_duration() << " s" << std::endl; }
+        void print_duration() { std::cout << "Duration time = " << get_duration() << " " << get_time_um_prefix() << get_time_um() << std::endl; }
 
 }; 

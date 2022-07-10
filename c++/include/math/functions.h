@@ -116,7 +116,7 @@ class Functor : public FunctionBase {
 };
 
 
-class Square : public FunctionBase {
+class Quadratic : public FunctionBase {
 
     private: 
 
@@ -133,9 +133,9 @@ class Square : public FunctionBase {
         // constructor and destructor
         // =============================================     
   
-        Square(double a, double b, double c) : m_a{a}, m_b{b}, m_c{c}, m_delta{pow(m_b, 2) - 4 * m_a * m_c} {}
+        Quadratic(double a, double b, double c) : m_a{a}, m_b{b}, m_c{c}, m_delta{pow(m_b, 2) - 4 * m_a * m_c} {}
         
-        ~Square() {} 
+        ~Quadratic() {} 
 
   
         // =============================================
@@ -170,7 +170,7 @@ class Square : public FunctionBase {
                 appo[0] = (- m_b - sqrt(m_delta)) / (2 * m_a); 
                 appo[1] = (- m_b + sqrt(m_delta)) / (2 * m_a);
             } else std::cout << std::endl << "There are not real solutions..." << std::endl << std::endl; // note: create a complex class then come back here
-            return appo; 
+            exit(-11);  
         }
 
 
@@ -199,7 +199,7 @@ class Square : public FunctionBase {
 }; 
 
 
-class Cube : public FunctionBase {
+class Cubic : public FunctionBase {
     
     private: 
 
@@ -216,9 +216,9 @@ class Cube : public FunctionBase {
         // constructor and destructor
         // =============================================   
     
-        Cube(double a, double b, double c, double d) : m_a{a}, m_b{b}, m_c{c}, m_d{d} {}
+        Cubic(double a, double b, double c, double d) : m_a{a}, m_b{b}, m_c{c}, m_d{d} {}
     
-        ~Cube() {} 
+        ~Cubic() {} 
     
     
         // =============================================
@@ -318,7 +318,7 @@ class SquareRoot : public FunctionBase {
 };
 
 
-class CubeRoot : public FunctionBase {
+class CubicRoot : public FunctionBase {
     
     private: 
 
@@ -336,9 +336,9 @@ class CubeRoot : public FunctionBase {
         // constructor and destructor
         // =============================================   
     
-        CubeRoot(double c1 = 1) : m_c1{c1} {}
+        CubicRoot(double c1 = 1) : m_c1{c1} {}
     
-        ~CubeRoot() {} 
+        ~CubicRoot() {} 
     
     
         // =============================================

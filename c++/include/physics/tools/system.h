@@ -6,7 +6,7 @@
 
 
 #pragma once
-#include "../math/vector_algebra.h"
+#include "../../math/vector_algebra.h"
 #include "time.h"
 
 

@@ -6,7 +6,7 @@
 
 
 #pragma once
-#include "../math/vector_algebra.h"
+#include "../../math/vector_algebra.h"
 
 
 class Velocity {
@@ -88,7 +88,7 @@ class Velocity {
         // =============================================
 
         void print_velocity() const {
-            std::cout << "velocity: " << std::endl;
+            std::cout << "- velocity =    ";
             print(m_velocity); 
             std::cout << get_vel_um_prefix() << get_vel_um() << std::endl; 
         }

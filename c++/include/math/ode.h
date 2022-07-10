@@ -2,12 +2,12 @@
 // author:          Lorenzo Liuzzo
 // email:           lorenzoliuzzo@outlook.com
 // description:     Ordinaries Differential Equations.
-// last updated:    02/07/2022
+// last updated:    10/07/2022
 
 
 #pragma once
-#include "../math/vector_algebra.h" 
-#include "time.h"
+#include "vector_algebra.h" 
+#include "../physics/tools/time.h"
 
 
 class ODE : public Time {

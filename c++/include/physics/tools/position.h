@@ -6,12 +6,12 @@
 
 
 #pragma once
-#include "../math/vector_algebra.h"
+#include "../../math/vector_algebra.h"
 #include "coordinates.h"
 #include "velocity.h"
 
 
-class Position : public Coordinates, Velocity {
+class Position : public Coordinates, public Velocity {
 
     public:  
 
@@ -61,7 +61,6 @@ class Position : public Coordinates, Velocity {
         // =============================================
 
         void print_position() const {
-            std::cout << "\nposition: " << std::endl;
             print_coordinates(); 
             print_velocity();
         }

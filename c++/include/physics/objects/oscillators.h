@@ -6,7 +6,7 @@
 
 
 #pragma once
-#include "ode.h"
+#include "../../math/ode.h"
 
 
 class HarmonicOscillator : public ODE {

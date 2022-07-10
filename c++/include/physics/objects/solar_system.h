@@ -5,8 +5,7 @@
 // last updated:    05/07/2022
 
 
-#include "system.h"
-#include "gravitational_field.h"
+#include "../tools/system.h"
 
 
 class SolarSystem : public system<CelestialBody> {
