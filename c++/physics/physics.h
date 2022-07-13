@@ -7,8 +7,29 @@
 
 #include <iostream>
 #include <cassert>
+#include <utility>
 
 #include "vector_algebra.h"
+
+
+/* ######## NAMESPACE PHYSICS MAP ########
+
+namespace physics
+    |
+    '----> namespace tools 
+            |
+            '----> namespace units 
+            |       |
+            |       '---> enum class base_enum
+            |       '---> class base 
+            |       '---> enum class prefix_enum
+            |       '---> class prefix 
+            |
+            '----> namespace measurement
+            |
+            '----> namespace position
+        
+*/
 
 
 namespace physics {
@@ -16,7 +37,7 @@ namespace physics {
     namespace tools {
 
         namespace units {
-
+            
             enum class base_enum { gram = 0, 
                                    meter = 1,
                                    second = 2,
@@ -25,7 +46,39 @@ namespace physics {
                                    mol = 5,  
                                    candela = 6 };    
             
+
             class base {
+
+                protected: 
+                    
+                    const char* int_to_const_chars(int n) const { 
+                        if      (n == 0) { return "g";   }
+                        else if (n == 1) { return "m";   }
+                        else if (n == 2) { return "s";   }
+                        else if (n == 3) { return "K";   }
+                        else if (n == 4) { return "A";   }
+                        else if (n == 5) { return "mol"; }
+                        else if (n == 6) { return "cd";  }
+                        else {
+                            std::cerr << "Invalid int for the base_enum convertion to const char*" << std::endl; 
+                            exit(-11); 
+                        }
+                    }
+
+                    constexpr int const_chars_to_int(const char* __base) const { 
+                        if      (__base == "g")   { return 0; } 
+                        else if (__base == "m")   { return 1; } 
+                        else if (__base == "s")   { return 2; } 
+                        else if (__base == "K")   { return 3; } 
+                        else if (__base == "A")   { return 4; } 
+                        else if (__base == "mol") { return 5; } 
+                        else if (__base == "cd")  { return 6; } 
+                        else {
+                            std::cerr << "Invalid const char* for the base_enum convertion to int" << std::endl; 
+                            exit(-11); 
+                        }
+                    }
+
 
                 public: 
 
@@ -37,9 +90,11 @@ namespace physics {
 
 
                     // =============================================
-                    // constructor and destructor
+                    // constructors and destructor
                     // =============================================        
                     
+                    base(const char* __base) { m_base = base_enum(const_chars_to_int(__base)); }
+
                     base(const int& __base) { m_base = base_enum(__base); }
 
                     ~base() {}
@@ -53,37 +108,18 @@ namespace physics {
 
                     constexpr base_enum get_base() { return m_base; }
 
+                    constexpr int get_base() const { return static_cast<std::underlying_type<base_enum>::type>(m_base); }
+
 
                     // =============================================
                     // print methods
                     // =============================================   
                     
-                    void print() const {
-                        switch (m_base) {
-                            case base_enum::gram:     std::cout << "g" << std::endl;     break;
-                            case base_enum::meter:    std::cout << "m" << std::endl;     break;
-                            case base_enum::second:   std::cout << "s" << std::endl;     break;
-                            case base_enum::kelvin:   std::cout << "K" << std::endl;     break;
-                            case base_enum::ampere:   std::cout << "A" << std::endl;     break;
-                            case base_enum::mol:      std::cout << "Mol" << std::endl;   break;
-                            case base_enum::candela:  std::cout << "cd" << std::endl;    break;
-                            default:                  std::cout << "what" << std::endl;  break;
-                        }
+                    void print() const { 
+                        std::cout << int_to_const_chars(get_base()) << std::endl; 
                     }
 
-
-                    // =============================================
-                    // base methods
-                    // =============================================   
-                    
-                    
-
             };
-
-
-            void check_base(base_enum b1, base_enum b2) {
-                assert(b1 == b2 && "The bases must be the same! Can't sum bananas and pijamas!");
-            }
 
 
             enum class prefix_enum { pico = 0,
@@ -102,6 +138,49 @@ namespace physics {
 
             class prefix {
 
+                private:       
+                                    
+                    const char* int_to_const_chars(const int& n) const { 
+                        if      (n == 0)  { return "p";  }
+                        else if (n == 1)  { return "n";  }
+                        else if (n == 2)  { return "µ"; }
+                        else if (n == 3)  { return "m"; }
+                        else if (n == 4)  { return "c"; }
+                        else if (n == 5)  { return "d";  }
+                        else if (n == 6)  { return "";      }
+                        else if (n == 7)  { return "dec";  }
+                        else if (n == 8)  { return "hec"; }
+                        else if (n == 9)  { return "k";  }
+                        else if (n == 10) { return "M";  } 
+                        else if (n == 11) { return "G";  } 
+                        else if (n == 12) { return "T";  } 
+                        else {
+                            std::cerr << "Invalid int for the prefix_enum convertion to const char*" << std::endl; 
+                            exit(-11); 
+                        }
+                    }
+
+                    constexpr int const_chars_to_int(const char* __prefix) const { 
+                        if      (__prefix == "pico")  { return 0;  }
+                        else if (__prefix == "nano")  { return 1;  }
+                        else if (__prefix == "micro") { return 2;  }
+                        else if (__prefix == "milli") { return 3;  }
+                        else if (__prefix == "centi") { return 4;  }
+                        else if (__prefix == "deci")  { return 5;  }
+                        else if (__prefix == "")      { return 6;  }
+                        else if (__prefix == "deca")  { return 7;  }
+                        else if (__prefix == "hecto") { return 8;  }
+                        else if (__prefix == "kilo")  { return 9;  }
+                        else if (__prefix == "mega")  { return 10; }
+                        else if (__prefix == "giga")  { return 11; }
+                        else if (__prefix == "tera")  { return 12; }
+                        else {
+                            std::cerr << "Invalid const char* for the prefix_enum convertion to int" << std::endl; 
+                            exit(-11);
+                        }
+                    }
+
+
                 public: 
 
                     // =============================================
@@ -112,9 +191,11 @@ namespace physics {
 
 
                     // =============================================
-                    // constructor and destructor
-                    // =============================================        
-                    
+                    // constructors and destructor
+                    // =============================================  
+
+                    prefix(const char* __prefix = "") { m_prefix = prefix_enum(const_chars_to_int(__prefix)); }
+                                        
                     prefix(const int& __prefix = 6) { m_prefix = prefix_enum(__prefix); }
 
                     ~prefix() {}
@@ -128,32 +209,24 @@ namespace physics {
 
                     constexpr prefix_enum get_prefix() { return m_prefix; }
 
+                    constexpr int get_prefix() const { return static_cast<std::underlying_type<prefix_enum>::type>(m_prefix); }
+
 
                     // =============================================
                     // print methods
                     // =============================================   
-                                                    
-                    void print() const {
-                        switch (m_prefix) {
-                            case prefix_enum::pico:     std::cout << " p";      break;
-                            case prefix_enum::nano:     std::cout << " n";      break;
-                            case prefix_enum::micro:    std::cout << " micro";  break;
-                            case prefix_enum::milli:    std::cout << " m";      break;
-                            case prefix_enum::centi:    std::cout << " c";      break;
-                            case prefix_enum::deci:     std::cout << " d";      break;
-                            case prefix_enum::none:  std::cout << " ";       break;
-                            case prefix_enum::deca:     std::cout << " da";     break;
-                            case prefix_enum::hecto:    std::cout << " hc";     break;
-                            case prefix_enum::kilo:     std::cout << " k";      break;
-                            case prefix_enum::mega:     std::cout << " M";      break;
-                            case prefix_enum::giga:     std::cout << " G";      break;
-                            case prefix_enum::tera:     std::cout << " T";      break;
-                            default:                    std::cout << " what";   break;
-                        }
-                    }        
+                    
+                    void print() const { 
+                        std::cout << " " << int_to_const_chars(get_prefix()); 
+                    }
+     
             
             };
 
+
+            void check_base(const base_enum& b1, const base_enum& b2) {
+                assert(b1 == b2 && "The bases must be the same! Can't sum bananas and pijamas!");
+            }
 
             // void check_prefix(prefix_enum b1, prefix_enum b2) {
             //     if(b1 !== b2) conver(b1, b2);
@@ -161,17 +234,26 @@ namespace physics {
 
             // void convert(prefix p1, prefix p2) {}
 
+            // void pow(const base_enum& b, const int& n) {
+            //     b.
+            // }
+            
 
+            
             class unit : public base, prefix {
 
                 public: 
 
                     // =============================================
-                    // constructor and destructor
+                    // constructors and destructor
                     // =============================================
 
                     unit(const int& __base, const int& __prefix = 6) : base(__base), prefix(__prefix) {}
-
+                    
+                    unit(const char* __base, const char* __prefix = "") : base(__base), prefix(__prefix) {}
+                    
+                    unit(const int& __base, const char* __prefix = "") : base(__base), prefix(__prefix) {}
+                    
                     ~unit() {}
 
 
@@ -184,7 +266,7 @@ namespace physics {
                         prefix::set_prefix(__prefix);  
                     }
 
-                    unit get_unit() const { return *this; }
+                    const unit get_unit() const { return *this; }
 
 
                     // =============================================
@@ -200,7 +282,10 @@ namespace physics {
             
         }
 
+
         namespace measurement {
+
+
             class measure {
 
                 public:
@@ -215,7 +300,7 @@ namespace physics {
 
 
                     // =============================================
-                    // constructor and destructor
+                    // constructors and destructor
                     // =============================================
 
                     measure(const double& value, const double& error = 0.) : m_value{value}, m_error{error} {}
@@ -245,18 +330,23 @@ namespace physics {
                     void print() const { std::cout << get_value() << " ± " << get_error(); }
 
             }; 
+            
 
             class measurement : public measure, public units::unit {
 
                 public:
 
                     // =============================================
-                    // constructor and destructor
+                    // constructors and destructor
                     // =============================================
 
                     measurement(const double& value, const int& __base, const int& __prefix = 6) : units::unit(__base, __prefix), measure(value) {}
+                    
+                    measurement(const double& value, const char* __base, const char* __prefix = "") : units::unit(__base, __prefix), measure(value) {}
 
                     measurement(const double& value, const double& error, const int& __base, const int& __prefix = 6) : measure(value, error), units::unit(__base, __prefix) {}
+                    
+                    measurement(const double& value, const double& error, const char* __base, const char* __prefix = "") : measure(value, error), units::unit(__base, __prefix) {}
 
                     ~measurement() {}
 
@@ -300,10 +390,12 @@ namespace physics {
                 public:  
 
                     // =============================================
-                    // constructor and destructor
+                    // constructors and destructor
                     // =============================================
 
                     coordinates(const std::vector<double>& coord, const int& __prefix = 6) : m_coordinates{coord}, tools::units::unit(1, __prefix) {}
+                    
+                    coordinates(const std::vector<double>& coord, const char* __prefix = "") : m_coordinates{coord}, tools::units::unit(1, __prefix) {}
 
                     ~coordinates() {}
                     
@@ -375,78 +467,78 @@ namespace physics {
 
             };
 
-            class velocity {
+            // class velocity {
 
-                protected: 
+            //     protected: 
 
-                    // =============================================
-                    // class members
-                    // =============================================
+            //         // =============================================
+            //         // class members
+            //         // =============================================
                 
-                    // velocity:     [x] [y] [z] 
+            //         // velocity:     [x] [y] [z] 
                     
-                    std::vector<double> m_velocity = zeros(3);
+            //         std::vector<double> m_velocity = zeros(3);
               
 
-                public:  
+            //     public:  
 
-                    // =============================================
-                    // constructors
-                    // =============================================
+            //         // =============================================
+            //         // constructors
+            //         // =============================================
 
-                    velocity(const std::vector<double>& vel, const int& __prefix = 6) : m_velocity{vel}, tools::units::unit(1, __prefix) {}
+            //         velocity(const std::vector<double>& vel, const int& __prefix = 6) : m_velocity{vel}, tools::units::unit(1, __prefix) {}
                     
-                    // =============================================
-                    // set methods
-                    // =============================================
+            //         // =============================================
+            //         // set methods
+            //         // =============================================
 
-                    void set_velocity(const std::vector<double>& vel) { m_velocity = vel; }
+            //         void set_velocity(const std::vector<double>& vel) { m_velocity = vel; }
 
-                    void set_velocity_x(const double& x) { m_velocity[0] = x; }
+            //         void set_velocity_x(const double& x) { m_velocity[0] = x; }
 
-                    void set_velocity_y(const double& y) { m_velocity[1] = y;  }
+            //         void set_velocity_y(const double& y) { m_velocity[1] = y;  }
 
-                    void set_velocity_z(const double& z) { m_velocity[2] = z; }
+            //         void set_velocity_z(const double& z) { m_velocity[2] = z; }
 
 
-                    // =============================================
-                    // get methods
-                    // =============================================
+            //         // =============================================
+            //         // get methods
+            //         // =============================================
 
-                    std::vector<double> get_velocity() const { return m_velocity; }
+            //         std::vector<double> get_velocity() const { return m_velocity; }
 
-                    double get_velocity_x() const { return m_velocity[0]; }
+            //         double get_velocity_x() const { return m_velocity[0]; }
 
-                    double get_velocity_y() const { return m_velocity[1]; }
+            //         double get_velocity_y() const { return m_velocity[1]; }
 
-                    double get_velocity_z() const { return m_velocity[2]; }
+            //         double get_velocity_z() const { return m_velocity[2]; }
                     
-                    double get_magnitude() const {
-                        return sqrt(pow(m_velocity[0], 2) +                 
-                                    pow(m_velocity[1], 2) + 
-                                    pow(m_velocity[2], 2));
-                    }        
+            //         double get_magnitude() const {
+            //             return sqrt(pow(m_velocity[0], 2) +                 
+            //                         pow(m_velocity[1], 2) + 
+            //                         pow(m_velocity[2], 2));
+            //         }        
 
-                    double get_phi() const { return atan2(m_velocity[1], m_velocity[0]); }     
+            //         double get_phi() const { return atan2(m_velocity[1], m_velocity[0]); }     
 
-                    double get_theta() const { return acos(m_velocity[2] / get_magnitude()); }
+            //         double get_theta() const { return acos(m_velocity[2] / get_magnitude()); }
             
-                    std::vector<double> get_direction() const {
-                        return {cos(get_phi()), sin(get_phi()), cos(get_theta())};
-                    } 
+            //         std::vector<double> get_direction() const {
+            //             return {cos(get_phi()), sin(get_phi()), cos(get_theta())};
+            //         } 
                 
 
-                    // =============================================
-                    // print methods
-                    // =============================================
+            //         // =============================================
+            //         // print methods
+            //         // =============================================
 
-                    void print_velocity() const {
-                        std::cout << "- velocity =    ";
-                        for (auto i : m_velocity) std::cout << "[" << i << "]\t"; 
-                        unit::print();
-                    }
+            //         void print_velocity() const {
+            //             std::cout << "- velocity =    ";
+            //             for (auto i : m_velocity) std::cout << "[" << i << "]\t"; 
+            //             unit::print();
+            //         }
 
-            };
+            // };
 
         } 
 
