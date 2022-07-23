@@ -287,7 +287,73 @@ namespace physics {
             // check the unit_data size
             static_assert(sizeof(unit_data) == bitwidth::base_size, "Unit data is too large");
 
+            // operator to generate the square power of a value
+            template<typename T> constexpr T sqr_power(T a) { return a * a; }
 
+            // operator to generate the cubic power of a value
+            template<typename T> constexpr T cbc_power(T a) { return a * a * a; }
+
+            // operator to generate small integer powers of a value(1, 0, -1)
+            template<typename T> constexpr T power_const_small(T val, int power) { 
+                return (power == 1) ? val : ((power == -1) ? T(1.0) / val : T(1.0));
+            }
+
+            // operator to generate an integer power of a number
+            template<typename T> constexpr T power_const(T val, int power) {
+                return (power > 1) ? sqr_power(power_const(val, power / 2)) * (power % 2 == 0 ? T(1.0) : val) :
+                    (power < -1) ? T(1.0) / (sqr_power(power_const(val, (-power) / 2)) * ((-power) % 2 == 0 ? T(1.0) : val)) :
+                    power_const_small(val, power);
+            }
+
+            // round the multiplier to the expected level of precision
+            inline float cround(float val) {
+                std::uint32_t bits;
+                std::memcpy(&bits, &val, sizeof(bits));
+                bits += 8UL;
+                bits &= 0xFFFFFFF0UL;
+                std::memcpy(&val, &bits, sizeof(bits));
+                return val;
+            }
+
+            // round a value to the expected level of precision of a double
+            inline double cround_precise(double val) {
+                std::uint64_t bits;
+                std::memcpy(&bits, &val, sizeof(bits));
+                bits += 0x800ULL;
+                bits &= 0xFFFFFFFFFFFFF000ULL;
+                std::memcpy(&val, &bits, sizeof(bits));
+                return val;
+            }
+
+            // rounding compare for equality on floats
+            inline bool compare_round_equals(float val1, float val2) {
+                static constexpr float half_precision{5e-7F};
+                auto v1 = val1 - val2;
+                if (v1 == 0.0F || std::fpclassify(v1) == FP_SUBNORMAL) return true;
+                auto c1 = cround(val1);
+                auto c2 = cround(val2);
+                return (c1 == c2) || 
+                    (cround(val2 * (1.0F + half_precision)) == c1) ||
+                    (cround(val2 * (1.0F - half_precision)) == c1) ||
+                    (cround(val1 * (1.0F + half_precision)) == c2) ||
+                    (cround(val1 * (1.0F - half_precision)) == c2);
+            }
+
+            // rounding compare for equality on double
+            inline bool compare_round_equals_precise(double val1, double val2) {
+                static constexpr double half_precise_precision{5e-13};
+                auto v1 = val1 - val2;
+                if (v1 == 0.0 || std::fpclassify(v1) == FP_SUBNORMAL) { return true; }
+                auto c1 = cround_precise(val1);
+                auto c2 = cround_precise(val2);
+                return (c1 == c2) ||
+                    (cround_precise(val2 * (1.0 + half_precise_precision)) == c1) ||
+                    (cround_precise(val2 * (1.0 - half_precise_precision)) == c1) ||
+                    (cround_precise(val1 * (1.0 + half_precise_precision)) == c2) ||
+                    (cround_precise(val1 * (1.0 - half_precise_precision)) == c2);
+            }
+
+            // class defining a basic unit module with float precision on the multiplier
             class unit {
 
                 private:
@@ -425,7 +491,7 @@ namespace physics {
                         base_units_(base_unit) {};
                     
                     // construct from base_unit and multiplier
-                    constexpr precise_unit(const detail::unit_data& base_unit, double mult) noexcept :
+                    constexpr precise_unit(const unit_data& base_unit, double mult) noexcept :
                         base_units_(base_unit), multiplier_(mult) {}
                     
                     // copy constructor from a less precise unit
@@ -450,7 +516,7 @@ namespace physics {
                     // ============================================= 
 
                     // take the reciprocal of a unit
-                    constexpr precise_unit inv() const { return {base_units_.inv(), (commodity_ == 0) ? 0 : ~commodity_, 1.0 / multiplier()}; }
+                    constexpr precise_unit inv() const { return {base_units_.inv(), 1.0 / multiplier()}; }
 
                     // multiply with another unit
                     constexpr precise_unit operator*(const precise_unit& other) const {
@@ -539,7 +605,7 @@ namespace physics {
                     // Check if the units are in some way convertible to one another
                     
                     constexpr bool is_convertible(const precise_unit& other) const {
-                        return commodity_ == other.commodity_ && base_units_.equivalent_non_counting(other.base_units_);
+                        return base_units_.equivalent_non_counting(other.base_units_);
                     }
                     
                     constexpr bool is_convertible(const unit& other) const {
@@ -557,11 +623,8 @@ namespace physics {
                     // get the number of different base units used
                     constexpr int unit_type_count() const { return base_units_.unit_type_count(); }
 
-                    // Check if the unit is the default unit
+                    // check if the unit is the default unit
                     constexpr bool is_default() const { return base_units_.empty(); }
-
-                    // get the commodity code
-                    constexpr std::uint32_t commodity() const { return commodity_; }
                     
                     // Extract the base unit Multiplier
                     constexpr double multiplier() const { return multiplier_; }
@@ -576,180 +639,279 @@ namespace physics {
                     // get the base units
                     constexpr unit_data base_units() const { return base_units_; }
 
-                    // Set the commodity
-                    precise_unit& commodity(std::uint32_t newCommodity) {
-                        commodity_ = newCommodity;
-                        return *this;
-                    }
-
-            };
+            }; // class precise_unit     
             
-            
-            // operator to generate the square power of a value
-            template<typename T> constexpr T sqr_power(T a) { return a * a; }
 
-            // operator to generate the cubic power of a value
-            template<typename T> constexpr T cbc_power(T a) { return a * a * a; }
-
-            // operator to generate small integer powers of a value(1, 0, -1)
-            template<typename T> constexpr T power_const_small(T val, int power) { 
-                return (power == 1) ? val : ((power == -1) ? T(1.0) / val : T(1.0));
-            }
-
-            // operator to generate an integer power of a number
-            template<typename T> constexpr T power_const(T val, int power) {
-                return (power > 1) ? sqr_power(power_const(val, power / 2)) * (power % 2 == 0 ? T(1.0) : val) :
-                    (power < -1) ? T(1.0) / (sqr_power(power_const(val, (-power) / 2)) * ((-power) % 2 == 0 ? T(1.0) : val)) :
-                    power_const_small(val, power);
-            }
-
-            // round the multiplier to the expected level of precision
-            inline float cround(float val) {
-                std::uint32_t bits;
-                std::memcpy(&bits, &val, sizeof(bits));
-                bits += 8UL;
-                bits &= 0xFFFFFFF0UL;
-                std::memcpy(&val, &bits, sizeof(bits));
-                return val;
-            }
-
-            // round a value to the expected level of precision of a double
-            inline double cround_precise(double val) {
-                std::uint64_t bits;
-                std::memcpy(&bits, &val, sizeof(bits));
-                bits += 0x800ULL;
-                bits &= 0xFFFFFFFFFFFFF000ULL;
-                std::memcpy(&val, &bits, sizeof(bits));
-                return val;
-            }
-
-            // rounding compare for equality on floats
-            inline bool compare_round_equals(float val1, float val2) {
-                static constexpr float half_precision{5e-7F};
-                auto v1 = val1 - val2;
-                if (v1 == 0.0F || std::fpclassify(v1) == FP_SUBNORMAL) return true;
-                auto c1 = cround(val1);
-                auto c2 = cround(val2);
-                return (c1 == c2) || 
-                    (cround(val2 * (1.0F + half_precision)) == c1) ||
-                    (cround(val2 * (1.0F - half_precision)) == c1) ||
-                    (cround(val1 * (1.0F + half_precision)) == c2) ||
-                    (cround(val1 * (1.0F - half_precision)) == c2);
-            }
-
-            // rounding compare for equality on double
-            inline bool compare_round_equals_precise(double val1, double val2) {
-                static constexpr double half_precise_precision{5e-13};
-                auto v1 = val1 - val2;
-                if (v1 == 0.0 || std::fpclassify(v1) == FP_SUBNORMAL) { return true; }
-                auto c1 = cround_precise(val1);
-                auto c2 = cround_precise(val2);
-                return (c1 == c2) ||
-                    (cround_precise(val2 * (1.0 + half_precise_precision)) == c1) ||
-                    (cround_precise(val2 * (1.0 - half_precise_precision)) == c1) ||
-                    (cround_precise(val1 * (1.0 + half_precise_precision)) == c2) ||
-                    (cround_precise(val1 * (1.0 - half_precise_precision)) == c2);
-            }
-
-
-
-
-
-
-
-
-
-
-
-
-            // =============================================
-            // base units
-            // =============================================
-
-            constexpr precise_unit meter(unit_data(1, 0, 0, 0, 0, 0, 0));
-            constexpr precise_unit m = meter;
-            constexpr precise_unit kilogram(unit_data(0, 1, 0, 0, 0, 0, 0));
-            constexpr precise_unit kg = kilogram;
-            constexpr precise_unit second(unit_data(0, 0, 1, 0, 0, 0, 0));
-            constexpr precise_unit s = second;
-            constexpr precise_unit Ampere(unit_data(0, 0, 0, 1, 0, 0, 0));
-            constexpr precise_unit A = Ampere;
-            constexpr precise_unit Kelvin(unit_data(0, 0, 0, 0, 1, 0, 0));
-            constexpr precise_unit K = Kelvin;
-            constexpr precise_unit mol(unit_data(0, 0, 0, 0, 0, 1, 0));
-            constexpr precise_unit candela(unit_data(0, 0, 0, 0, 0, 0, 1));
-            constexpr precise_unit cd = candela;
-
-            // Check if a unit down cast is lossless
+            /// check if a unit down cast is lossless
             inline constexpr bool is_unit_cast_lossless(const precise_unit& val) {
                 return val.multiplier() == static_cast<double>(static_cast<float>(val.multiplier()));
             }
 
-            // Downcast a precise unit to the less precise version
+            /// downcast a precise unit to the less precise version
             constexpr unit unit_cast(const precise_unit& val) {
                 return {val.base_units(), val.multiplier()};
             }
-            
+
+            /// downcast a unit to the less precise version
             constexpr unit unit_cast(const unit& val) { return val; }
 
-
-            // Generate a conversion factor between two units in a constexpr function, the
-            // units will only convert if they have the same base unit
-            template<typename UX, typename UX2>
-            constexpr double quick_convert(UX start, UX2 result) {
-                return quick_convert(1.0, start, result);
+            /// Check if the multiplier is nan
+            inline bool isnan(const precise_unit& u) {
+                return std::isnan(u.multiplier());
             }
 
-            // Generate a conversion factor between two units in a constexpr function, the
-            // units will only convert if they have the same base unit
-            template<typename UX, typename UX2>
-            constexpr double quick_convert(double val, const UX& start, const UX2& result) {
-                static_assert(
-                    std::is_same<UX, unit>::value || std::is_same<UX, precise_unit>::value,
-                    "convert argument types must be unit or precise_unit");
-                static_assert(
-                    std::is_same<UX2, unit>::value ||
-                        std::is_same<UX2, precise_unit>::value,
-                    "convert argument types must be unit or precise_unit");
-                return (start.base_units() == result.base_units()) ?
-                    val * start.multiplier() / result.multiplier() :
-                    constants::invalid_conversion;
+            /// Check if the multiplier is nan
+            inline bool isnan(const unit& u) {
+                return std::isnan(u.multiplier_f());
             }
 
-            // Generate a conversion factor between two units
-            template<typename UX, typename UX2>
-            double convert(const UX& start, const UX2& result) {
-                return convert(1.0, start, result);
+            //checks that the multiplier is finite
+            inline bool isfinite(const precise_unit& utest) {
+                return std::isfinite(utest.multiplier());
             }
 
-            // Convert a value from one unit base to another
-            template<typename UX, typename UX2>
-            double convert(double val, const UX& start, const UX2& result) {
-                static_assert( 
-                    std::is_same<UX, unit>::value || std::is_same<UX, precise_unit>::value,
-                    "convert argument types must be unit or precise_unit");
-                static_assert( 
-                    std::is_same<UX2, unit>::value || std::is_same<UX2, precise_unit>::value, 
-                    "convert argument types must be unit or precise_unit");
+            // check if the unit multiplier is finite
+            inline bool isfinite(const unit& utest) {
+                return std::isfinite(utest.multiplier_f());
+            }
+
+            // check if unit multiplier is finite
+            inline bool isinf(const precise_unit& utest) {
+                return std::isinf(utest.multiplier());
+            }
+
+            // check if unit multiplier is infinite
+            inline bool isinf(const unit& utest) {
+                return std::isinf(utest.multiplier_f());
+            }
+
+            // generate a unit which is an integer power of another
+            inline constexpr unit pow(const unit& u, int power) {
+                return u.pow(power);
+            }
+
+            // generate a precise unit which is an integer power of another
+            inline constexpr precise_unit pow(const precise_unit& u, int power) {
+                return u.pow(power);
+            }
+
+            // Verify that the units are the expected sizes
+            static_assert(
+                sizeof(unit) <= bitwidth::base_size * 2,
+                "Unit type is too large");
+
+            static_assert(
+                sizeof(precise_unit) <= bitwidth::base_size * 2 + sizeof(double),
+                "precise unit type is too large");
+
+
+            namespace precise {
+
+                // base units
+                constexpr precise_unit meter(unit_data(1, 0, 0, 0, 0, 0, 0));
+                constexpr precise_unit m = meter;
+
+                constexpr precise_unit second(unit_data(0, 1, 0, 0, 0, 0, 0));
+                constexpr precise_unit s = second;
+                
+                constexpr precise_unit kilogram(unit_data(0, 0, 1, 0, 0, 0, 0));
+                constexpr precise_unit kg = kilogram;
+
+                constexpr precise_unit Ampere(unit_data(0, 0, 0, 1, 0, 0, 0));
+                constexpr precise_unit A = Ampere;
+
+                constexpr precise_unit Kelvin(unit_data(0, 0, 0, 0, 1, 0, 0));
+                constexpr precise_unit K = Kelvin;
+
+                constexpr precise_unit mol(unit_data(0, 0, 0, 0, 0, 1, 0));
+                
+                constexpr precise_unit candela(unit_data(0, 0, 0, 0, 0, 0, 1));
+                constexpr precise_unit cd = candela;
+
+                // // define some specialized units
+                // constexpr precise_unit defunit(unit_data(0, 0, 0, 0, 0, 0, 0));
+                // constexpr precise_unit invalid(unit_data(nullptr), constants::invalid_conversion);
+                // constexpr precise_unit error(unit_data(nullptr));
+
+                /// Define some unitless numbers
+                constexpr precise_unit one;
+                constexpr precise_unit hundred = precise_unit(one, 100.0);
+                constexpr precise_unit ten = precise_unit(one, 10.0);
+                constexpr precise_unit percent(one, 0.01);
+
+                constexpr precise_unit infinite(unit_data(0, 0, 0, 0, 0, 0, 0), constants::infinity);
+                constexpr precise_unit neginfinite(unit_data(0, 0, 0, 0, 0, 0, 0), -constants::infinity);
+                constexpr precise_unit nan(unit_data(0, 0, 0, 0, 0, 0, 0), constants::invalid_conversion);
+
+                // SI prefixes as units
+                constexpr precise_unit milli(one, 1e-3);
+                constexpr precise_unit micro(one, 1e-6);
+                constexpr precise_unit nano(one, 1e-9);
+                constexpr precise_unit pico(one, 1e-12);
+                constexpr precise_unit femto(one, 1e-15);
+                constexpr precise_unit atto(one, 1e-18);
+                constexpr precise_unit zepto(one, 1e-21);
+                constexpr precise_unit yocto(one, 1e-24);
+
+                constexpr precise_unit hecto(one, 1e2);
+                constexpr precise_unit kilo(one, 1e3);
+                constexpr precise_unit mega(one, 1e6);
+                constexpr precise_unit giga(one, 1e9);
+                constexpr precise_unit tera(one, 1e12);
+                constexpr precise_unit peta(one, 1e15);
+                constexpr precise_unit exa(one, 1e18);
+                constexpr precise_unit zetta(one, 1e21);
+                constexpr precise_unit yotta(one, 1e24);
+
+                constexpr precise_unit kibi(one, 1024);
+                constexpr precise_unit mebi = kibi * kibi;
+                constexpr precise_unit gibi = mebi * kibi;
+                constexpr precise_unit tebi = gibi * kibi;
+                constexpr precise_unit pebi = tebi * kibi;
+                constexpr precise_unit exbi = pebi * kibi;
+                constexpr precise_unit zebi = exbi * kibi;
+                constexpr precise_unit yobi = zebi * kibi;
+
+            //     // Derived SI units:
+            //     constexpr precise_unit hertz(unit_data(0, 0, -1, 0, 0, 0, 0));
+            //     constexpr precise_unit Hz = hertz;
+
+            //     constexpr precise_unit volt(unit_data(2, 1, -3, -1, 0, 0, 0));
+            //     constexpr precise_unit V = volt;
+
+            //     constexpr precise_unit newton(unit_data(1, 1, -2, 0, 0, 0, 0));
+            //     constexpr precise_unit N = newton;
+
+            //     constexpr precise_unit Pa(unit_data(-1, 1, -2, 0, 0, 0, 0));
+            //     constexpr precise_unit pascal = Pa;
+
+            //     constexpr precise_unit joule(unit_data(2, 1, -2, 0, 0, 0, 0));
+            //     constexpr precise_unit J = joule;
+
+            //     constexpr precise_unit watt(unit_data(2, 1, -3, 0, 0, 0, 0));
+            //     constexpr precise_unit W = watt;
+
+            //     constexpr precise_unit coulomb(unit_data(0, 0, 1, 1, 0, 0, 0));
+            //     constexpr precise_unit C = coulomb;
+
+            //     constexpr precise_unit farad(unit_data(-2, -1, 4, 2, 0, 0, 0));
+            //     constexpr precise_unit F = farad;
+
+            //     constexpr precise_unit weber(unit_data(2, 1, -2, -1, 0, 0, 0));
+            //     constexpr precise_unit Wb = weber;
+                
+            //     constexpr precise_unit tesla(unit_data(0, 1, -2, -1, 0, 0, 0));
+            //     constexpr precise_unit T = tesla;
+
+            //     constexpr precise_unit henry(unit_data(2, 1, -2, -2, 0, 0, 0));
+            //     constexpr precise_unit H = henry;
+
+            //     // Distance units
+            //     constexpr precise_unit cm(0.01, m);
+            //     constexpr precise_unit km(1000.0, m);
+            //     constexpr precise_unit mm(0.001, m);
+            //     constexpr precise_unit nm(1e-9, m);
+
+            //     // Volume units
+            //     constexpr precise_unit L{0.001, m* m* m};
+            //     constexpr precise_unit mL{0.001, L};
+                
+            //     // mass units
+            //     constexpr precise_unit g(0.001, kg);
+            //     constexpr precise_unit mg(0.001, g);
+
+            //     namespace time {
+            //         // Time unit
+            //         constexpr precise_unit min(60.0, s);
+            //         constexpr precise_unit ms(0.001, s);
+            //         constexpr precise_unit ns(1e-9, s);
+            //         constexpr precise_unit hr(60.0, min);
+            //         constexpr precise_unit h(60.0, min);
+            //         constexpr precise_unit day(24.0, hr);
+            //         constexpr precise_unit week(7.0, day);
+            //         constexpr precise_unit yr(8760.0, hr);  // median calendar year;
+            //         constexpr precise_unit fortnight(14, day);
+
+            //         constexpr precise_unit sday{365.24 / 366.24, day};  // sidereal day
+            //         constexpr precise_unit syr(365.256363004, day);  // sidereal year
+            //         constexpr precise_unit at{365.24219, day* eflag};  // mean tropical year
+            //         constexpr precise_unit aj{365.25, day};  // julian year
+            //         constexpr precise_unit ag{365.2425, day};  // gregorian year
+            //         constexpr precise_unit year = yr;  // standard year for SI
+            //         constexpr precise_unit mos{29.53059, day};  // synodal month
+            //         constexpr precise_unit moj{1.0 / 12.0, aj};  // mean julian month
+            //         constexpr precise_unit mog{1.0 / 12.0, ag};  // mean gregorian month
+            //     }  // namespace time
+
+            //     constexpr precise_unit min = time::min;
+            //     constexpr precise_unit ms = time::ms;
+            //     constexpr precise_unit ns = time::ns;
+            //     constexpr precise_unit hr = time::hr;
+            //     constexpr precise_unit h = time::h;
+            //     constexpr precise_unit yr = time::yr;
+            //     constexpr precise_unit day = time::day;
+ 
+            } // namespace precise
+
+        } // namespace units
+
+            // // Generate a conversion factor between two units in a constexpr function, the
+            // // units will only convert if they have the same base unit
+            // template<typename UX, typename UX2>
+            // constexpr double quick_convert(UX start, UX2 result) {
+            //     return quick_convert(1.0, start, result);
+            // }
+
+            // // Generate a conversion factor between two units in a constexpr function, the
+            // // units will only convert if they have the same base unit
+            // template<typename UX, typename UX2>
+            // constexpr double quick_convert(double val, const UX& start, const UX2& result) {
+            //     static_assert(
+            //         std::is_same<UX, unit>::value || std::is_same<UX, precise_unit>::value,
+            //         "convert argument types must be unit or precise_unit");
+            //     static_assert(
+            //         std::is_same<UX2, unit>::value ||
+            //             std::is_same<UX2, precise_unit>::value,
+            //         "convert argument types must be unit or precise_unit");
+            //     return (start.base_units() == result.base_units()) ?
+            //         val * start.multiplier() / result.multiplier() :
+            //         constants::invalid_conversion;
+            // }
+
+            // // Generate a conversion factor between two units
+            // template<typename UX, typename UX2>
+            // double convert(const UX& start, const UX2& result) {
+            //     return convert(1.0, start, result);
+            // }
+
+            // // Convert a value from one unit base to another
+            // template<typename UX, typename UX2>
+            // double convert(double val, const UX& start, const UX2& result) {
+            //     static_assert( 
+            //         std::is_same<UX, unit>::value || std::is_same<UX, precise_unit>::value,
+            //         "convert argument types must be unit or precise_unit");
+            //     static_assert( 
+            //         std::is_same<UX2, unit>::value || std::is_same<UX2, precise_unit>::value, 
+            //         "convert argument types must be unit or precise_unit");
                     
-                if (start == result) { return val; }
-                if (start.base_units() == result.base_units()) { return val * start.multiplier() / result.multiplier(); }
+            //     if (start == result) { return val; }
+            //     if (start.base_units() == result.base_units()) { return val * start.multiplier() / result.multiplier(); }
 
-                auto base_start = start.base_units();
-                auto base_result = result.base_units();
+            //     auto base_start = start.base_units();
+            //     auto base_result = result.base_units();
 
-                if (base_start.has_same_base(base_result)) { return val * start.multiplier() / result.multiplier(); }
-                // check for inverse units
-                if (base_start.has_same_base(base_result.inv())) {
-                    // ignore flag and e flag  special cases have been dealt with already, so those are just markers
-                    return 1.0 / (val * start.multiplier() * result.multiplier());
-                }
+            //     if (base_start.has_same_base(base_result)) { return val * start.multiplier() / result.multiplier(); }
+            //     // check for inverse units
+            //     if (base_start.has_same_base(base_result.inv())) {
+            //         // ignore flag and e flag  special cases have been dealt with already, so those are just markers
+            //         return 1.0 / (val * start.multiplier() * result.multiplier());
+            //     }
 
-                // this is the last chance and will return invalid_result if it doesn't find a match
-                // return otherUsefulConversions(val, start, result);
-                return constants::invalid_conversion;
+            //     // this is the last chance and will return invalid_result if it doesn't find a match
+            //     // return otherUsefulConversions(val, start, result);
+            //     return constants::invalid_conversion;
 
-            }
+            // }
 
             // template<typename UX, typename UX2>
             // inline double otherUsefulConversions(double val, const UX& start, const UX2& result) {
@@ -765,7 +927,6 @@ namespace physics {
             // }
 
 
-        } // namespace units
 
         namespace vector_algebra {
 
@@ -1172,189 +1333,189 @@ namespace physics {
 
         } // namespace vectors
 
-        namespace measurements {
+        // namespace measurements {
 
-            using namespace units; 
+        //     using namespace units; 
 
-            class measurement {
+        //     class measurement {
 
-                private: 
+        //         private: 
 
-                    // =============================================                                                                                         
-                    // class members
-                    // =============================================  
+        //             // =============================================                                                                                         
+        //             // class members
+        //             // =============================================  
 
-                    double value_{0.0}; 
+        //             double value_{0.0}; 
 
-                    unit units_;  
+        //             unit units_;  
 
-                public:
+        //         public:
 
-                    // =============================================                                                                                         
-                    // constructors
-                    // =============================================  
+        //             // =============================================                                                                                         
+        //             // constructors
+        //             // =============================================  
 
-                    // Default constructor
-                    constexpr measurement() noexcept {}
+        //             // Default constructor
+        //             constexpr measurement() noexcept {}
 
-                    // construct from a value and unit
-                    constexpr measurement(double val, const unit& base) : value_(val), units_(base) {}
+        //             // construct from a value and unit
+        //             constexpr measurement(double val, const unit& base) : value_(val), units_(base) {}
 
 
-                    // =============================================                                                                                         
-                    // operators
-                    // =============================================  
+        //             // =============================================                                                                                         
+        //             // operators
+        //             // =============================================  
                                     
-                    constexpr measurement operator*(const measurement& other) const {
-                        return {value_ * other.value_, units_ * other.units_};
-                    }
+        //             constexpr measurement operator*(const measurement& other) const {
+        //                 return {value_ * other.value_, units_ * other.units_};
+        //             }
 
-                    constexpr measurement operator*(const unit& other) const {
-                        return {value_, units_ * other};
-                    }
+        //             constexpr measurement operator*(const unit& other) const {
+        //                 return {value_, units_ * other};
+        //             }
 
-                    constexpr measurement operator*(double val) const {
-                        return {value_ * val, units_};
-                    }
+        //             constexpr measurement operator*(double val) const {
+        //                 return {value_ * val, units_};
+        //             }
 
-                    constexpr measurement operator/(const measurement& other) const {
-                        return {value_ / other.value_, units_ / other.units_};
-                    }
+        //             constexpr measurement operator/(const measurement& other) const {
+        //                 return {value_ / other.value_, units_ / other.units_};
+        //             }
 
-                    constexpr measurement operator/(const unit& other) const {
-                        return {value_, units_ / other};
-                    }
+        //             constexpr measurement operator/(const unit& other) const {
+        //                 return {value_, units_ / other};
+        //             }
 
-                    constexpr measurement operator/(double val) const {
-                        return {value_ / val, units_};
-                    }
+        //             constexpr measurement operator/(double val) const {
+        //                 return {value_ / val, units_};
+        //             }
 
-                    measurement operator%(const measurement& other) const {
-                        return {fmod(value_, other.value_as(units_)), units_};
-                    }
+        //             measurement operator%(const measurement& other) const {
+        //                 return {fmod(value_, other.value_as(units_)), units_};
+        //             }
 
-                    measurement operator%(double val) const {
-                        return {fmod(value_, val), units_};
-                    }
+        //             measurement operator%(double val) const {
+        //                 return {fmod(value_, val), units_};
+        //             }
 
-                    measurement operator+(const measurement& other) const {
-                        return {value_ + other.value_as(units_), units_};
-                    }
+        //             measurement operator+(const measurement& other) const {
+        //                 return {value_ + other.value_as(units_), units_};
+        //             }
 
-                    measurement operator-(const measurement& other) const {
-                        return {value_ - other.value_as(units_), units_};
-                    }
+        //             measurement operator-(const measurement& other) const {
+        //                 return {value_ - other.value_as(units_), units_};
+        //             }
 
-                    // double multiplier
-                    friend constexpr inline measurement operator*(double val, const measurement& meas) {
-                        return meas * val;
-                    }
+        //             // double multiplier
+        //             friend constexpr inline measurement operator*(double val, const measurement& meas) {
+        //                 return meas * val;
+        //             }
 
-                    // divide measurement into a double
-                    friend constexpr inline measurement operator/(double val, const measurement& meas) {
-                        return {val / meas.value_, meas.units_.inv()};
-                    }
+        //             // divide measurement into a double
+        //             friend constexpr inline measurement operator/(double val, const measurement& meas) {
+        //                 return {val / meas.value_, meas.units_.inv()};
+        //             }
 
-                    friend constexpr measurement pow(const measurement& meas, int power) {
-                        return {power_const(meas.value_, power), meas.units_.pow(power)};
-                    }
+        //             friend constexpr measurement pow(const measurement& meas, int power) {
+        //                 return {power_const(meas.value_, power), meas.units_.pow(power)};
+        //             }
                     
-                    // Equality operator
-                    bool operator==(const measurement& other) const {
-                        auto val = other.value_as(units_);
-                        return (value_ == val) ?
-                            true : compare_round_equals(static_cast<float>(value_), static_cast<float>(val));
-                    }
+        //             // Equality operator
+        //             bool operator==(const measurement& other) const {
+        //                 auto val = other.value_as(units_);
+        //                 return (value_ == val) ?
+        //                     true : compare_round_equals(static_cast<float>(value_), static_cast<float>(val));
+        //             }
 
-                    bool operator>(const measurement& other) const {
-                        return value_ > other.value_as(units_);
-                    }
+        //             bool operator>(const measurement& other) const {
+        //                 return value_ > other.value_as(units_);
+        //             }
 
-                    bool operator<(const measurement& other) const {
-                        return value_ < other.value_as(units_);
-                    }
+        //             bool operator<(const measurement& other) const {
+        //                 return value_ < other.value_as(units_);
+        //             }
 
-                    bool operator>=(const measurement& other) const {
-                        auto val = other.value_as(units_);
-                        return (value_ >= val) ?
-                            true : compare_round_equals(static_cast<float>(value_), static_cast<float>(val));
-                    }
+        //             bool operator>=(const measurement& other) const {
+        //                 auto val = other.value_as(units_);
+        //                 return (value_ >= val) ?
+        //                     true : compare_round_equals(static_cast<float>(value_), static_cast<float>(val));
+        //             }
 
-                    bool operator<=(const measurement& other) const {
-                        auto val = other.value_as(units_);
-                        return (value_ <= val) ?
-                            true : compare_round_equals(static_cast<float>(value_), static_cast<float>(val));
-                    }
+        //             bool operator<=(const measurement& other) const {
+        //                 auto val = other.value_as(units_);
+        //                 return (value_ <= val) ?
+        //                     true : compare_round_equals(static_cast<float>(value_), static_cast<float>(val));
+        //             }
 
-                    // Not equal operator
-                    bool operator!=(const measurement& other) const {
-                        return !operator==(other);
-                    }
-
-
-                    // =============================================                                                                                         
-                    // convert methods
-                    // =============================================  
-
-                    // Convert a unit to have a new base
-                    measurement convert_to(const unit& newUnits) const {
-                        return {convert(value_, units_, newUnits), newUnits};
-                    }
-
-                    // Convert a unit into its base units
-                    constexpr measurement convert_to_base() const {
-                        return {value_ * units_.multiplier(), unit(units_.base_units())};
-                    }
+        //             // Not equal operator
+        //             bool operator!=(const measurement& other) const {
+        //                 return !operator==(other);
+        //             }
 
 
-                    // =============================================                                                                                         
-                    // get methods
-                    // =============================================  
+        //             // =============================================                                                                                         
+        //             // convert methods
+        //             // =============================================  
 
-                    // get the base value with no units
-                    constexpr double value() const { return value_; }
+        //             // Convert a unit to have a new base
+        //             measurement convert_to(const unit& newUnits) const {
+        //                 return {convert(value_, units_, newUnits), newUnits};
+        //             }
 
-                    // extract the current units from the measurement
-                    constexpr unit units() const { return units_; }
+        //             // Convert a unit into its base units
+        //             constexpr measurement convert_to_base() const {
+        //                 return {value_ * units_.multiplier(), unit(units_.base_units())};
+        //             }
 
-                    // convert the measurement to a single unit
-                    constexpr unit as_unit() const { return {value_, units_}; }
 
-                    // get the numerical value as a particular unit type
-                    double value_as(const unit& desired_unit) const {
-                        return (units_ == desired_unit) ?
-                            value_ : convert(value_, units_, desired_unit);
-                    }
+        //             // =============================================                                                                                         
+        //             // get methods
+        //             // =============================================  
 
-                    // get the numerical value as a particular unit type
-                    double value_as(precise_unit desired_units) const {
-                        return value_as(unit_cast(desired_units));
-                    }
+        //             // get the base value with no units
+        //             constexpr double value() const { return value_; }
 
-            }; // class measurement 
+        //             // extract the current units from the measurement
+        //             constexpr unit units() const { return units_; }
 
-            // The design requirement is for this to fit in the space of 2 doubles
-            static_assert(
-                sizeof(measurement) <= 2 * bitwidth::base_size + sizeof(double),
-                "Measurement class is too large");
+        //             // convert the measurement to a single unit
+        //             constexpr unit as_unit() const { return {value_, units_}; }
 
-            constexpr inline measurement operator*(double val, const unit& unit_base) {
-                return {val, unit_base};
-            }
+        //             // get the numerical value as a particular unit type
+        //             double value_as(const unit& desired_unit) const {
+        //                 return (units_ == desired_unit) ?
+        //                     value_ : convert(value_, units_, desired_unit);
+        //             }
 
-            constexpr inline measurement operator*(const unit& unit_base, double val) {
-                return {val, unit_base};
-            }
+        //             // get the numerical value as a particular unit type
+        //             double value_as(precise_unit desired_units) const {
+        //                 return value_as(unit_cast(desired_units));
+        //             }
 
-            constexpr inline measurement operator/(double val, const unit& unit_base) {
-                return {val, unit_base.inv()};
-            }
+        //     }; // class measurement 
 
-            constexpr inline measurement operator/(const unit& unit_base, double val) {
-                return {1.0 / val, unit_base};
-            }
+        //     // The design requirement is for this to fit in the space of 2 doubles
+        //     static_assert(
+        //         sizeof(measurement) <= 2 * bitwidth::base_size + sizeof(double),
+        //         "Measurement class is too large");
 
-        } // namespace measurements
+        //     constexpr inline measurement operator*(double val, const unit& unit_base) {
+        //         return {val, unit_base};
+        //     }
+
+        //     constexpr inline measurement operator*(const unit& unit_base, double val) {
+        //         return {val, unit_base};
+        //     }
+
+        //     constexpr inline measurement operator/(double val, const unit& unit_base) {
+        //         return {val, unit_base.inv()};
+        //     }
+
+        //     constexpr inline measurement operator/(const unit& unit_base, double val) {
+        //         return {1.0 / val, unit_base};
+        //     }
+
+        // } // namespace measurements
     
     } // namespace tools
 
