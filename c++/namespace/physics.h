@@ -1783,7 +1783,7 @@ namespace physics {
                     std::vector<coordinate> m_velocity; 
                 
 
-                public: 
+                public:  
 
                     // =============================================
                     // constructors
