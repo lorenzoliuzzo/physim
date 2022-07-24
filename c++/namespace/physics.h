@@ -2,61 +2,25 @@
 // author:          Lorenzo Liuzzo
 // email:           lorenzoliuzzo@outlook.com
 // description:     physics(namespace) containing the basic tools for computational physics. 
-// last updated:    23/07/2022
+// last updated:    24/07/2022
 
-
-#include <iostream>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
 #include <functional> 
+#include <iostream>
 #include <limits>
+#include <unordered_map>
 #include <vector>
-
-
-/* 
-
-######## NAMESPACE PHYSICS MAP ########
-
-namespace physics
-    |
-    '----> namespace tools 
-    |       |
-    |       '----> namespace constants     
-    |       |
-    |       |    
-    |       '----> namespace op 
-    |       |
-    |       |    
-    |       '----> namespace units 
-    |       |       |
-    |       |       '---> class unit_data
-    |       |       '---> class unit 
-    |       |       '---> class unit 
-    |       |
-    |       '----> namespace vector_algebra
-    |       |       |
-    |       |       '--->
-    |       |       '--->    
-    |       |       '--->
-    |       |       '--->
-    |       |
-    |       '----> namespace measurements
-    |               |
-    |               '--->
-    |               '--->    
-    |               '--->
-    |               '--->
-    |
-*/
-
 
 
 namespace physics {
 
     namespace tools {
 
+        // namespace defining some usefull constants
         namespace constants {
 
             constexpr int32_t max_neg(uint32_t n_bits) { return -(int32_t(1U << (n_bits - 1))); }
@@ -67,14 +31,15 @@ namespace physics {
 
         } // namespace constants
 
-        static_assert(
-            std::numeric_limits<double>::has_signaling_NaN, 
-                "nan is used to signify invalid values");
-        
-        static_assert(
-            std::numeric_limits<double>::has_infinity, 
-                "nan is used to signify invalid values");
 
+        // verify if the number is NaN 
+        static_assert(std::numeric_limits<double>::has_signaling_NaN, "nan is used to signify invalid values");
+            
+        // verify if the number is infinity
+        static_assert(std::numeric_limits<double>::has_infinity, "nan is used to signify invalid values");
+
+
+        // namespace defining some usefull operation
         namespace op {
 
             // operator to generate the square power of a value
@@ -121,6 +86,8 @@ namespace physics {
 
         }
 
+        
+        // namespace defining the units of measurements
         namespace units {
             
             // number of bits used for encoding base unit exponents 
@@ -166,7 +133,7 @@ namespace physics {
                     // constructors
                     // ============================================= 
                     
-                    // construct from powers
+                    // constructor from powers
                     constexpr unit_data(int meters, 
                                         int seconds, 
                                         int kilograms,
@@ -455,17 +422,17 @@ namespace physics {
                     constexpr bool is_default() const { return base_units_.empty(); }
 
                     // check if the multiplier is nan
-                    inline bool isnan(const unit& u) {
+                    inline bool is_nan(const unit& u) {
                         return std::isnan(u.multiplier());
                     }
 
                     // checks that the multiplier is finite
-                    inline bool isfinite(const unit& utest) {
+                    inline bool is_finite(const unit& utest) {
                         return std::isfinite(utest.multiplier());
                     }
 
                     // check if unit multiplier is finite
-                    inline bool isinf(const unit& utest) {
+                    inline bool is_inf(const unit& utest) {
                         return std::isinf(utest.multiplier());
                     }
 
@@ -498,61 +465,24 @@ namespace physics {
             static_assert(sizeof(unit) <= bitwidth::base_size * 2 + + sizeof(double), "Unit type is too large");
 
 
-            // convertion template functions 
-            namespace convert {
-
-                // Generate a conversion factor between two units in a constexpr function, the
-                // units will only convert if they have the same base unit
-                template<typename UX, typename UX2>
-                constexpr double quick_convert(UX start, UX2 result) { return quick_convert(1.0, start, result); }
-
-                // Generate a conversion factor between two units in a constexpr function, the
-                // units will only convert if they have the same base unit
-                template<typename UX, typename UX2>
-                constexpr double quick_convert(double val, const UX& start, const UX2& result) {
-                    static_assert(
-                        std::is_same<UX, unit>::value || std::is_same<UX, unit>::value,
-                        "convert argument types must be unit or unit");
-                    static_assert(
-                        std::is_same<UX2, unit>::value || std::is_same<UX2, unit>::value,
-                        "convert argument types must be unit or unit");
-                    return (start.base_units() == result.base_units()) ?
-                        val * start.multiplier() / result.multiplier() :
-                            constants::invalid_conversion;
-                }
-
-                // Generate a conversion factor between two units
-                template<typename UX, typename UX2>
-                double convert(const UX& start, const UX2& result) { return convert(1.0, start, result); }
-
-                // Convert a value from one unit base to another
-                template<typename UX, typename UX2>
-                double convert(double val, const UX& start, const UX2& result) {
-                    static_assert( 
-                        std::is_same<UX, unit>::value || std::is_same<UX, unit>::value,
-                        "convert argument types must be unit or unit");
-                    static_assert( 
-                        std::is_same<UX2, unit>::value || std::is_same<UX2, unit>::value, 
-                        "convert argument types must be unit or unit");
-                        
-                    if (start == result) { return val; }
-                    if (start.base_units() == result.base_units()) { return val * start.multiplier() / result.multiplier(); }
-
-                    auto base_start = start.base_units();
-                    auto base_result = result.base_units();
-
-                    if (base_start.has_same_base(base_result)) { return val * start.multiplier() / result.multiplier(); }
-                    if (base_start.has_same_base(base_result.inv())) { return 1.0 / (val * start.multiplier() * result.multiplier()); }
-                    return constants::invalid_conversion;
-
-                }    
-
-            } // namespace convert
-
-
             // units declarations
             namespace defined_units {
 
+                // some unitless numbers
+                constexpr unit one;
+                constexpr unit hundred = unit(100.0, one);
+                constexpr unit ten = unit(10.0, one);
+                constexpr unit percent(one, 0.01);
+                constexpr unit infinite(unit_data(0, 0, 0, 0, 0, 0, 0), constants::infinity);
+                constexpr unit neginfinite(unit_data(0, 0, 0, 0, 0, 0, 0), -constants::infinity);
+                constexpr unit nan(unit_data(0, 0, 0, 0, 0, 0, 0), constants::invalid_conversion);
+
+                // some specialized units
+                constexpr unit defunit(unit_data(0, 0, 0, 0, 0, 0, 0));
+                constexpr unit invalid(unit_data(nullptr), constants::invalid_conversion);
+                constexpr unit error(unit_data(nullptr));
+                
+                
                 // SI units
                 namespace SI {
 
@@ -579,23 +509,10 @@ namespace physics {
                 } // namespace SI
 
 
-                    // // define some specialized units
-                    constexpr unit defunit(unit_data(0, 0, 0, 0, 0, 0, 0));
-                    constexpr unit invalid(unit_data(nullptr), constants::invalid_conversion);
-                    constexpr unit error(unit_data(nullptr));
-
-                    // Define some unitless numbers
-                    constexpr unit one;
-                    constexpr unit hundred = unit(100.0, one);
-                    constexpr unit ten = unit(10.0, one);
-                    constexpr unit percent(one, 0.01);
-                    constexpr unit infinite(unit_data(0, 0, 0, 0, 0, 0, 0), constants::infinity);
-                    constexpr unit neginfinite(unit_data(0, 0, 0, 0, 0, 0, 0), -constants::infinity);
-                    constexpr unit nan(unit_data(0, 0, 0, 0, 0, 0, 0), constants::invalid_conversion);
-
                 // SI prefixes as units
                 namespace SI_prefix {
-
+                    
+                    constexpr unit centi(one, 1e-2);
                     constexpr unit milli(one, 1e-3);
                     constexpr unit micro(one, 1e-6);
                     constexpr unit nano(one, 1e-9);
@@ -615,18 +532,9 @@ namespace physics {
                     constexpr unit zetta(one, 1e21);
                     constexpr unit yotta(one, 1e24);
 
-                    constexpr unit kibi(one, 1024);
-                    constexpr unit mebi = kibi * kibi;
-                    constexpr unit gibi = mebi * kibi;
-                    constexpr unit tebi = gibi * kibi;
-                    constexpr unit pebi = tebi * kibi;
-                    constexpr unit exbi = pebi * kibi;
-                    constexpr unit zebi = exbi * kibi;
-                    constexpr unit yobi = zebi * kibi;
-
                 } // namespace SI_prefix
 
-
+                    
                 // derived SI units:
                 namespace SI_derived { 
 
@@ -663,59 +571,255 @@ namespace physics {
                     constexpr unit henry(unit_data(2, 1, -2, -2, 0, 0, 0));
                     constexpr unit H = henry;
 
-                    constexpr unit mps(m / s);
+                    constexpr unit mps(SI::m / SI::s);
+                    constexpr unit mpss(SI::m / SI::s.pow(2)); 
 
+                    // distance units
+                    constexpr unit km(1000.0, SI::m);
+                    constexpr unit dm(0.1, SI::m);
+                    constexpr unit cm(0.01, SI::m);
+                    constexpr unit mm(0.001, SI::m);
+                    constexpr unit um(1.e-6, SI::m);
+                    constexpr unit nm(1.e-9, SI::m);
 
-                    // Distance units
-                    constexpr unit cm(m, 0.01);
-                    constexpr unit km(m, 1000.0);
-                    constexpr unit mm(m, 0.001);
-                    constexpr unit nm(m, 1e-9);
-
-                    // Volume units
-                    constexpr unit L{m * m * m, 0.001};
-                    constexpr unit mL{L, 0.001};
+                    // volume units
+                    constexpr unit L{0.001, SI::m * SI::m * SI::m};
+                    constexpr unit dL{0.1, L};
+                    constexpr unit cL{0.01, L};
+                    constexpr unit mL{0.001, L};
                     
                     // mass units
-                    constexpr unit g(kg, 0.001);
-                    constexpr unit mg(g, 0.001);
+                    constexpr unit g(0.001, SI::kg);
+                    constexpr unit mg(0.001, g);
 
+                    // time unit
                     namespace time {
 
-                        // Time unit
-                        constexpr unit min(s, 60.0);
-                        constexpr unit ms(s, 0.001);
-                        constexpr unit ns(s, 1e-9);
-                        constexpr unit hr(min, 60.0);
-                        constexpr unit h(min, 60.0);
-                        constexpr unit day(hr, 24.0);
-                        constexpr unit week(day, 7.0);
-                        constexpr unit fortnight(day, 14);
-                        constexpr unit yr(hr, 8760.0);  // median calendar year;
-                        constexpr unit year = yr;  // standard year for SI
-                        constexpr unit sday{day, 365.24 / 366.24};  // sidereal day
-                        constexpr unit syr(day, 365.256363004);  // sidereal year
+                        constexpr unit ms(0.001, SI::s);
+                        constexpr unit us(1.e-6, SI::s);
+                        constexpr unit ns(1.e-9, SI::s);
+                        constexpr unit min(60.0, SI::s);
+                        constexpr unit hr(60.0, min);
+                        constexpr unit day(24.0, hr);
+                        constexpr unit yr(8760.0, hr);  // median calendar year;
+                        constexpr unit sday{365.24 / 366.24, day};  // sidereal day
+                        constexpr unit syr(365.256363004, day);  // sidereal year
 
                     }  // namespace time
 
-                    constexpr unit min = time::min;
                     constexpr unit ms = time::ms;
+                    constexpr unit us = time::us; 
                     constexpr unit ns = time::ns;
-                    constexpr unit hr = time::hr;
-                    constexpr unit h = time::h;
-                    constexpr unit yr = time::yr;
+                    constexpr unit min = time::min;
+                    constexpr unit hr = time::hr;  
                     constexpr unit day = time::day;
+                    constexpr unit yr = time::yr;
+                    constexpr unit sday = time::sday; 
+                    constexpr unit syr = time::syr; 
 
+
+                    constexpr unit MW = SI_prefix::mega * W; 
+                    constexpr unit kW = SI_prefix::kilo * W; 
+                    constexpr unit mW = SI_prefix::milli * W; 
+                    constexpr unit mA = SI_prefix::milli * SI::A; 
+                    constexpr unit kV = SI_prefix::kilo * V; 
+                    
+
+                } // namespace SI_derived
+
+
+                // // defined units to string
+                // static const std::vector<unit, std::string> defined_unit_names = {
+                //     // SI units
+                //     {SI::m, "m"},
+                //     {SI::s, "s"},
+                //     {SI::kg, "kg"},
+                //     {SI::A, "A"},
+                //     {SI::K, "K"},
+                //     {SI::mol, "mol"},
+                //     {SI::cd, "cd"},
+                    
+                //     {SI::m * SI::m, "m^2"},
+                //     {SI::m * SI::m * SI::m, "m^3"}, 
+                //     {SI::s * SI::s, "s^2"},
+                //     {SI::s * SI::s * SI::s, "s^3"}, 
+                //     {SI::kg * SI::kg, "kg^2"},
+                //     {SI::kg * SI::kg * SI::kg, "kg^3"}, 
+
+                //     // SI derived units
+                //     {SI_derived::Hz, "Hz"},
+                //     {SI_derived::V, "V"},
+                //     {SI_derived::N, "N"},
+                //     {SI_derived::Pa, "Pa"},
+                //     {SI_derived::J, "J"},
+                //     {SI_derived::W, "W"},
+                //     {SI_derived::C, "C"},
+                //     {SI_derived::F, "F"},
+                //     {SI_derived::Wb, "Wb"},
+                //     {SI_derived::T, "T"},
+                //     {SI_derived::H, "H"},
+                //     {SI_derived::mps, "m/s"},
+                //     {SI_derived::mpss, "m/s^2"},
+                //     {SI_derived::MW, "MW"},
+                //     {SI_derived::kW, "kW"},
+                //     {SI_derived::mW, "mW"},
+                //     {SI_derived::mA, "mA"},
+                //     {SI_derived::kV, "kV"},
+
+
+                //     {SI_derived::dm, "dm"},
+                //     {SI_derived::dm * SI_derived::dm, "dm^2"},
+                //     {SI_derived::dm * SI_derived::dm * SI_derived::dm, "dm^3"},
+                //     {SI_derived::cm, "cm"},
+                //     {SI_derived::cm * SI_derived::cm, "cm^2"},
+                //     {SI_derived::cm * SI_derived::cm * SI_derived::cm, "cm^3"},
+                //     {SI_derived::mm, "mm"},
+                //     {SI_derived::mm * SI_derived::mm, "mm^2"},
+                //     {SI_derived::mm * SI_derived::mm * SI_derived::mm, "mm^3"},
+                //     {SI_derived::km, "km"},
+                //     {SI_derived::km * SI_derived::km, "km^2"},
+                //     {SI_derived::km * SI_derived::km * SI_derived::km, "km^3"},
+                //     {SI_derived::um, "um"},
+                //     {SI_derived::nm, "nm"},
+
+                //     {SI_derived::ns, "ns"},
+                //     {SI_derived::us, "us"},
+                //     {SI_derived::ms, "ms"},
+                //     {SI_derived::min, "min"},
+                //     {SI_derived::hr, "hr"},
+                //     {SI_derived::day, "day"},
+                //     {SI_derived::yr, "yr"},
+                    
+                //     {SI_derived::g, "g"}, 
+                //     {SI_derived::mg, "mg"}, 
+                            
+                //     {SI_derived::L, "L"},
+                //     {SI_derived::dL, "dL"},
+                //     {SI_derived::cL, "cL"},
+                //     {SI_derived::mL, "mL"},
+                    
+                // };
+
+
+            } // namespace defined_units
+
+
+            // convertion template functions 
+            namespace convert {
+
+                // Generate a conversion factor between two units in a constexpr function, the
+                // units will only convert if they have the same base unit
+                template<typename UX, typename UX2>
+                constexpr double quick_convert(UX start, UX2 result) { return quick_convert(1.0, start, result); }
+
+                // Generate a conversion factor between two units in a constexpr function, the
+                // units will only convert if they have the same base unit
+                template<typename UX, typename UX2>
+                constexpr double quick_convert(double val, const UX& start, const UX2& result) {
+                    static_assert(            std::is_same<UX, unit>::value || std::is_same<UX, unit>::value,
+                        "convert argument types must be unit or unit");
+                    static_assert(            std::is_same<UX2, unit>::value || std::is_same<UX2, unit>::value,
+                        "convert argument types must be unit or unit");
+                    return (start.base_units() == result.base_units()) ?
+                        val * start.multiplier() / result.multiplier() :
+                            constants::invalid_conversion;
                 }
 
-            } // namespace 
+                // Convert a value from one unit base to another
+                template<typename UX, typename UX2>
+                double convert(double val, const UX& start, const UX2& result) {
+                    static_assert(std::is_same<UX, unit>::value || std::is_same<UX, unit>::value,
+                        "convert argument types must be unit or unit");
+                    static_assert(std::is_same<UX2, unit>::value || std::is_same<UX2, unit>::value, 
+                        "convert argument types must be unit or unit");
+                        
+                    if (start == result) { return val; }
+                    if (start.base_units() == result.base_units()) { return val * start.multiplier() / result.multiplier(); }
+
+                    auto base_start = start.base_units();
+                    auto base_result = result.base_units();
+
+                    if (base_start.has_same_base(base_result)) { return val * start.multiplier() / result.multiplier(); }
+                    if (base_start.has_same_base(base_result.inv())) { return 1.0 / (val * start.multiplier() * result.multiplier()); }
+                    return constants::invalid_conversion;
+
+                }     
+                                
+                // Generate a conversion factor between two units
+                template<typename UX, typename UX2>
+                double convert(const UX& start, const UX2& result) { return convert(1.0, start, result); }
+
+                // static const std::unordered_map<double, char> SI_prefix_value_to_char{
+                //     {0.001, 'm'},        {1.0F / 1000.0, 'm'},
+                //     {1000.0, 'k'},       {1.0F / 0.001, 'k'},
+                //     {1e-6, 'u'},         {1.0F / 1e6, 'u'},
+                //     {0.01, 'c'},         {1.0F / 100.0, 'c'},
+                //     {1000000.0, 'M'},    {1.0F / 0.000001, 'M'},
+                //     {1000000000.0, 'G'}, {1.0F / 0.000000001, 'G'},
+                //     {1e-9, 'n'},         {1.0F / 1e9, 'n'},
+                //     {1e-12, 'p'},        {1.0F / 1e12, 'p'},
+                //     {1e-15, 'f'},        {1.0F / 1e15, 'f'},
+                //     {1e-18, 'a'},        {1.0F / 1e18, 'a'},
+                //     {1e-21, 'z'},        {1.0F / 1e21, 'z'},
+                //     {1e-24, 'y'},        {1.0F / 1e24, 'y'},
+                //     {1e12, 'T'},         {1.0F / 1e-12, 'T'},
+                //     {1e15, 'P'},         {1.0F / 1e-15, 'P'},
+                //     {1e18, 'E'},         {1.0F / 1e-18, 'E'},
+                //     {1e21, 'Z'},         {1.0F / 1e-21, 'Z'},
+                //     {1e24, 'Y'},         {1.0F / 1e-24, 'Y'}
+                // };
+
+                // static const std::unordered_map<unit, char> SI_prefix_to_char {
+                //     {defined_units::SI_prefix::kilo, 'k'},  
+                //     {defined_units::SI_prefix::centi, 'c'}, 
+                //     {defined_units::SI_prefix::milli, 'm'}, 
+                //     {defined_units::SI_prefix::micro, 'u'},     
+                //     {defined_units::SI_prefix::mega, 'M'},        
+                //     {defined_units::SI_prefix::giga, 'G'},        
+                //     {defined_units::SI_prefix::nano, 'n'},      
+                //     {defined_units::SI_prefix::pico, 'p'},       
+                //     {defined_units::SI_prefix::femto, 'f'},    
+                //     {defined_units::SI_prefix::atto, 'a'},        
+                //     {defined_units::SI_prefix::zepto, 'z'},       
+                //     {defined_units::SI_prefix::yocto, 'y'},     
+                //     {defined_units::SI_prefix::tera, 'T'},       
+                //     {defined_units::SI_prefix::peta, 'P'},        
+                //     {defined_units::SI_prefix::exa, 'E'},         
+                //     {defined_units::SI_prefix::zetta, 'Z'},      
+                //     {defined_units::SI_prefix::yotta, 'Y'},      
+                // };
+
+                // static const std::unordered_map<char, unit> SI_prefix_char_to_SI_prefix{
+                //     {'m', defined_units::SI_prefix::milli},
+                //     {'k', defined_units::SI_prefix::kilo},  
+                //     {'u', defined_units::SI_prefix::micro}, 
+                //     {'c', defined_units::SI_prefix::centi},      
+                //     {'M', defined_units::SI_prefix::mega},        
+                //     {'G', defined_units::SI_prefix::giga},        
+                //     {'n', defined_units::SI_prefix::nano},      
+                //     {'p', defined_units::SI_prefix::pico},       
+                //     {'f', defined_units::SI_prefix::femto},    
+                //     {'a', defined_units::SI_prefix::atto},        
+                //     {'z', defined_units::SI_prefix::zepto},       
+                //     {'y', defined_units::SI_prefix::yocto},     
+                //     {'T', defined_units::SI_prefix::tera},       
+                //     {'P', defined_units::SI_prefix::peta},        
+                //     {'E', defined_units::SI_prefix::exa},         
+                //     {'Z', defined_units::SI_prefix::zetta},      
+                //     {'Y', defined_units::SI_prefix::yotta}         
+                // };
+                    
+
+            } // namespace convert
+
 
         } // namespace units
 
 
+        // namespace defining some usefull measurement structures
         namespace measurements {
 
-            // class using precise units and double precision
+            // class using units and double precision
             class measurement {
 
                 private:
@@ -738,14 +842,18 @@ namespace physics {
                     // default constructor
                     constexpr measurement() noexcept {};
 
-                    // constructor from a value and a fixed unit 
+                    // constructor from a value and a unit 
                     constexpr measurement(double val, const units::unit& base) :
                         value_(val), units_(base) {}
 
-                    // constructor from implicit conversion from a lower precision measurement
+                    // constructor from a measurement
                     constexpr measurement(const measurement& other) :
                         value_(other.value()), units_(other.units()) {}
 
+                    // constructor from a measurement
+                    constexpr measurement(measurement&& val) noexcept :
+                        value_(val.value()), units_(val.units()) {}
+                        
                     // destructor
                     ~measurement() = default;
 
@@ -872,6 +980,11 @@ namespace physics {
                     // convert the measurement to a single unit
                     constexpr units::unit as_unit() const { return {value_, units_}; }
 
+                    // print the measurement
+                    void print() const {
+                        std::cout << value() << " udm";  
+                    }
+
                 private:
 
                     // does a numerical equality check on the value accounting for tolerances
@@ -885,12 +998,10 @@ namespace physics {
 
 
             // verify that the precise measurement are the expected sizes
-            static_assert(
-                sizeof(measurement) <= 2 * sizeof(double) + 2 * units::bitwidth::base_size,
-                    "precise measurement is too large");
+            static_assert(sizeof(measurement) <= 2 * sizeof(double) + 2 * units::bitwidth::base_size, "precise measurement is too large");
 
 
-            // class using precise units and a value
+            // class using a fixed unit and a value
             class fixed_measurement {
 
                 private:
@@ -910,15 +1021,19 @@ namespace physics {
                     // constructors
                     // =============================================  
 
+                    // constructor from a value and a unit 
                     constexpr fixed_measurement(double val, const units::unit& base) :
                         value_(val), units_(base) {}
 
+                    // constructor from a measurement
                     explicit constexpr fixed_measurement(const measurement& val) :
                         value_(val.value()), units_(val.units()) {}
 
-                    constexpr fixed_measurement(const fixed_measurement& val) noexcept :
+                    // constructor from a fixed measurement
+                    constexpr fixed_measurement(const fixed_measurement& val) :
                         value_(val.value()), units_(val.units()) {}
 
+                    // constructor from a fixed measurement
                     constexpr fixed_measurement(fixed_measurement&& val) noexcept :
                         value_(val.value()), units_(val.units()) {}
 
@@ -1012,8 +1127,7 @@ namespace physics {
                     }
 
                     bool operator==(double val) const {
-                        return (value_ == val) ?
-                            true : op::compare_round_equals(value_, val);
+                        return (value_ == val) ? true : op::compare_round_equals(value_, val);
                     }
 
                     bool operator!=(double val) const { return !operator==(val); }
@@ -1031,43 +1145,35 @@ namespace physics {
                     }
 
                     bool operator==(const fixed_measurement& val) const {
-                        return operator==(
-                            (units_ == val.units()) ? val.value() : val.value_as(units_));
+                        return operator==((units_ == val.units()) ? val.value() : val.value_as(units_));
                     }
 
                     bool operator!=(const fixed_measurement& val) const {
-                        return operator!=(
-                            (units_ == val.units()) ? val.value() : val.value_as(units_));
+                        return operator!=((units_ == val.units()) ? val.value() : val.value_as(units_));
                     }
 
                     bool operator==(const measurement& val) const {
-                        return operator==(
-                            (units_ == val.units()) ? val.value() : val.value_as(units_));
+                        return operator==((units_ == val.units()) ? val.value() : val.value_as(units_));
                     }
 
                     bool operator!=(const measurement& val) const {
-                        return operator!=(
-                            (units_ == val.units()) ? val.value() : val.value_as(units_));
+                        return operator!=((units_ == val.units()) ? val.value() : val.value_as(units_));
                     }
 
                     bool operator>(const measurement& val) const {
-                        return operator>(
-                            (units_ == val.units()) ? val.value() : val.value_as(units_));
+                        return operator>((units_ == val.units()) ? val.value() : val.value_as(units_));
                     }
 
                     bool operator<(const measurement& val) const {
-                        return operator<(
-                            (units_ == val.units()) ? val.value() : val.value_as(units_));
+                        return operator<((units_ == val.units()) ? val.value() : val.value_as(units_));
                     }
 
                     bool operator>=(const measurement& val) const {
-                        return operator>=(
-                            (units_ == val.units()) ? val.value() : val.value_as(units_));
+                        return operator>=((units_ == val.units()) ? val.value() : val.value_as(units_));
                     }
 
                     bool operator<=(const measurement& val) const {
-                        return operator<=(
-                            (units_ == val.units()) ? val.value() : val.value_as(units_));
+                        return operator<=((units_ == val.units()) ? val.value() : val.value_as(units_));
                     }
 
                     friend bool operator==(double val, const fixed_measurement& v2) {
@@ -1118,41 +1224,46 @@ namespace physics {
                     // direct conversion operator
                     operator measurement() { return {value_, units_}; }
 
+                    // set the numerical value
+                    void value(double val) { value_ = val; }
+
+                    // get the numerical value
                     constexpr double value() const { return value_; }
 
+                    // get the unit
                     constexpr units::unit units() const { return units_; }
 
-                    // convert the measurement to a single unit
+                    // convert the measurement to a unit
                     constexpr units::unit as_unit() const { return {value_, units_}; }
 
-                    // Get the numerical value as a particular unit type
+                    // get the numerical value as a particular unit type
                     double value_as(const units::unit& desired_units) const {
-                        return (units_ == desired_units) ?
-                            value_ :
-                            units::convert::convert(value_, units_, desired_units);
+                        return (units_ == desired_units) ? value_ : units::convert::convert(value_, units_, desired_units);
                     }
 
-                    // Convert a unit to have a new base
+                    // convert a unit to have a new base
                     measurement convert_to(const units::unit& newUnits) const {
                         return { units::convert::convert(value_, units_, newUnits), newUnits };
                     }
 
-                    // Convert a unit into its base units
+                    // convert a unit into its base units
                     constexpr measurement convert_to_base() const {
                         return { value_ * units_.multiplier(), units::unit(units_.base_units()) };
                     }
 
+                    // print the measurement
+                    void print() const {
+                        std::cout << value() << " udm"; 
+                    }
 
-                }; // class fixed_measurement
+            }; // class fixed_measurement
 
 
             // verify that the fixed measurement are the expected sizes
-            static_assert(
-                sizeof(fixed_measurement) <= sizeof(double) + 2 * units::bitwidth::base_size,
-                    "fixed measurement is too large");
+            static_assert(sizeof(fixed_measurement) <= 2 * sizeof(double) + 2 * units::bitwidth::base_size, "fixed measurement is too large");
 
 
-            // class using precise units and an uncertain value
+            // class using fixed units, a value and an uncertain value
             class uncertain_measurement {
 
                 private:
@@ -1174,21 +1285,22 @@ namespace physics {
                     // constructors
                     // =============================================  
 
+                    // default constructor
                     constexpr uncertain_measurement() = default;
                     
-                    // construct from a single precision value, uncertainty, and unit
+                    // constructor from a value, uncertainty, and unit
                     constexpr uncertain_measurement(double val, double uncertainty_val, const units::unit& base) noexcept :
                         value_(val), uncertainty_(uncertainty_val), units_(base) {}
 
-                    // construct from a single precision value, and unit assume uncertainty is 0
+                    // constructpr from a value and an unit, assuming the uncertainty is 0
                     explicit constexpr uncertain_measurement(double val, const units::unit& base) noexcept :
                         value_(val), units_(base) {}
 
-                    // construct from a regular measurement and uncertainty value
+                    // constructor from a regular measurement and uncertainty value
                     explicit constexpr uncertain_measurement(const measurement& val, double uncertainty_val) noexcept : 
                         value_(val.value()), uncertainty_(uncertainty_val), units_(val.units()) {}
 
-                    // construct from a regular measurement and an uncertainty measurement
+                    // constructor from a regular measurement and an uncertainty measurement
                     explicit uncertain_measurement(const measurement& val, const measurement& uncertainty_meas) noexcept :
                         value_(val.value()), uncertainty_(uncertainty_meas.value_as(val.units())), units_(val.units()) {}
 
@@ -1248,8 +1360,7 @@ namespace physics {
                     constexpr uncertain_measurement operator/(const measurement& other) const {
                         return { 
                             static_cast<double>(value() / other.value()),
-                            static_cast<double>(uncertainty() / other.value()),
-                            units_ / other.units() };
+                            static_cast<double>(uncertainty() / other.value()), units_ / other.units() };
                     }
 
                     constexpr uncertain_measurement operator/(const units::unit& other) const {
@@ -1262,7 +1373,7 @@ namespace physics {
 
                     // compute a unit addition and calculate the new uncertainties using the root sum of squares(rss) method
                     uncertain_measurement operator+(const uncertain_measurement& other) const {
-                        auto cval = static_cast<double>(convert(other.units_, units_));
+                        auto cval = static_cast<double>(units::convert::convert(other.units_, units_));
                         double ntol = std::sqrt(
                             uncertainty_ * uncertainty_ +
                             cval * cval * other.uncertainty_ * other.uncertainty_);
@@ -1270,14 +1381,14 @@ namespace physics {
                     }
 
                     uncertain_measurement simple_add(const uncertain_measurement& other) const {
-                        auto cval = static_cast<double>(convert(other.units_, units_));
+                        auto cval = static_cast<double>(units::convert::convert(other.units_, units_));
                         double ntol = uncertainty_ + other.uncertainty_ * cval;
                         return { value_ + cval * other.value_, ntol, units_};
                     }
 
                     // compute a unit subtraction and calculate the new uncertainties using the root sum of squares(rss) method
                     uncertain_measurement operator-(const uncertain_measurement& other) const {
-                        auto cval = static_cast<double>(convert(other.units_, units_));
+                        auto cval = static_cast<double>(units::convert::convert(other.units_, units_));
                         double ntol = std::sqrt(
                             uncertainty_ * uncertainty_ +
                             cval * cval * other.uncertainty_ * other.uncertainty_);
@@ -1286,7 +1397,7 @@ namespace physics {
 
                     // compute a unit subtraction and calculate the new uncertainties using the simple uncertainty summation method
                     uncertain_measurement simple_subtract(const uncertain_measurement& other) const {
-                        auto cval = convert::convert(other.units_, units_);
+                        auto cval = units::convert::convert(other.units_, units_);
                         double ntol = uncertainty_ + other.uncertainty_ * cval;
                         return { value_ - cval * other.value_, ntol, units_};
                     }
@@ -1305,15 +1416,13 @@ namespace physics {
                     friend constexpr uncertain_measurement pow(const uncertain_measurement& meas, int power) {
                         auto new_value = op::power_const(meas.value_, power);
                         auto new_tol = ((power >= 0) ? power : -power) * new_value * meas.uncertainty_ / meas.value_;
-                        return uncertain_measurement{ new_value, new_tol, meas.units_.pow(power) };
+                        return uncertain_measurement(new_value, new_tol, meas.units_.pow(power));                    
                     }
 
                     // comparison operators 
                     bool operator==(const measurement& other) const {
                         auto val = other.value_as(units_);
-                        if (uncertainty_ == 0.0F) { return (value_ == val) ? true :
-                                                    op::compare_round_equals(value_, val);
-                        }
+                        if (uncertainty_ == 0.0F) { return (value_ == val) ? true : op::compare_round_equals(value_, val); }
                         return (val >= (value_ - uncertainty_) && val <= (value_ + uncertainty_));
                     }
 
@@ -1392,14 +1501,14 @@ namespace physics {
                     };
 
                     friend inline uncertain_measurement operator+(const measurement& v1, const uncertain_measurement& v2) {
-                        double cval = convert::convert(v2.units_, v1.units());
+                        double cval = units::convert::convert(v2.units_, v1.units());
                         double ntol = v2.uncertainty() * cval;
                         return uncertain_measurement(
                             v1.value() + cval * v2.value(), ntol, v1.units());
                     }
 
                     friend inline uncertain_measurement operator-(const measurement& v1, const uncertain_measurement& v2) {
-                        double cval = convert::convert(v2.units_, v1.units());
+                        double cval = units::convert::convert(v2.units_, v1.units());
                         double ntol = v2.uncertainty() * cval;
                         return uncertain_measurement(v1.value() - cval * v2.value(), ntol, v1.units());
                     }
@@ -1445,39 +1554,6 @@ namespace physics {
                     // get and set methods
                     // =============================================  
 
-                    // Convert a unit to have a new base
-                    uncertain_measurement convert_to(const units::unit& newUnits) const {
-                        auto cval = convert::convert(units_, newUnits);
-                        return { cval * value_, uncertainty_ * cval, newUnits};
-                    }
-
-                    // get the underlying units value
-                    constexpr units::unit units() const { return units_; }
-
-                    // get the numerical value as a particular unit type
-                    double value_as(units::unit desired_units) const {
-                        return (units_ == desired_units) ? value_ :  units::convert::convert(value_, units_, desired_units);
-                    }
-                    // get the numerical value as a particular unit type
-                    double value_as(const units::unit& desired_units) const {
-                        return value_as(units::unit_cast(desired_units));
-                    }
-                    // get the numerical value of the uncertainty as a particular unit
-                    double uncertainty_as(units::unit desired_units) const {
-                        return (units_ == desired_units) ? uncertainty_ : units::convert::convert(uncertainty_, units_, desired_units);
-                    }
-
-                    double uncertainty_as(const units::unit& desired_units) const {
-                        return uncertainty_as(units::unit_cast(desired_units));
-                    }
-
-
-                    // get the base value with no units
-                    constexpr double value() const { return value_; }
-                    
-                    // get the uncertainty with no units
-                    constexpr double uncertainty() const { return uncertainty_; }
-
                     // set the uncertainty
                     uncertain_measurement& uncertainty(double newUncertainty) {
                         uncertainty_ = newUncertainty;
@@ -1490,34 +1566,387 @@ namespace physics {
                         return *this;
                     }
 
-                    // get the fractional uncertainty with no units
-                    constexpr double fractional_uncertainty() const {
-                        return uncertainty() / ((value_ >= 0.0F) ? value_ : -value_);
+                    // get the uncertainty as a separate measurement
+                    constexpr measurement uncertainty_measurement() const { return { uncertainty(), units_ }; }
+
+                    // // cast operator to a measurement
+                    constexpr operator measurement() const { return { value(), units_ }; }
+
+                    // get the numerical value 
+                    constexpr double value() const { return value_; }
+
+                    // get the numerical value of the uncertainty
+                    constexpr double uncertainty() const { return uncertainty_; }
+
+                    // get the underlying units value
+                    constexpr units::unit units() const { return units_; }
+
+                    // get the numerical value as a particular unit type
+                    double value_as(const units::unit& desired_units) const {
+                        return (units_ == desired_units) ? value_ : units::convert::convert(value_, units_, desired_units);
                     }
 
-                    // get the uncertainty as a separate measurement
-                    constexpr measurement uncertainty_measurement() const { return { uncertainty(), units_}; }
+                    // get the numerical value of the uncertainty as a particular unit
+                    double uncertainty_as(const units::unit& desired_units) const {
+                        return (units_ == desired_units) ? uncertainty_ : units::convert::convert(uncertainty_, units_, desired_units);
+                    }
 
-                    // cast operator to a measurement
-                    constexpr operator measurement() const { return { value(), units_}; }
+                    // convert a unit to have a new base
+                    uncertain_measurement convert_to(const units::unit& newUnits) const {
+                        auto cval = units::convert::convert(units_, newUnits);
+                        return { cval * value_, uncertainty_ * cval, newUnits };
+                    }
 
+                    // print the uncertain measurement
+                    void print() const {
+                        std::cout << value() << " ± " << uncertainty() << " udm"; 
+                    }
 
+                    // print the uncertain measurement
+                    void print_as(const units::unit& desired_units) const {
+                        std::cout << value_as(desired_units) << " ± " << uncertainty_as(desired_units) << " udm"; 
+                    }
+    
             }; // class uncertain_measurement
 
 
             // verify that the uncertain measurement are the expected sizes
-            static_assert(
-                sizeof(uncertain_measurement) <= 2 * sizeof(double) + 2 * units::bitwidth::base_size,
-                    "uncertain measurement is too large");
-
+            static_assert(sizeof(uncertain_measurement) <= 3 * sizeof(double) + 2 * units::bitwidth::base_size, "uncertain measurement is too large");
 
         } // namespace measurements
-
     
+
+        namespace position {
+
+            class coordinate {
+
+                protected: 
+
+                    // =============================================
+                    // class members
+                    // =============================================
+                
+                    measurements::fixed_measurement m_coordinate; 
+                    
+
+                public:  
+
+                    // =============================================
+                    // constructors and destructor
+                    // =============================================
+
+                    coordinate(const double& coord, const units::unit& unit) : m_coordinate(coord, unit) {}
+
+                    coordinate() = default; 
+
+
+                    // =============================================
+                    // set, get and print methods
+                    // =============================================
+                    
+                    void set_coordinate(const double& x) { m_coordinate.value(x); }
+
+                    double get_coordinate() const { return m_coordinate.value(); }
+
+                    void print() const { m_coordinate.print(); }
+
+
+            }; // class coordinate
+
+
+            class position {
+
+                private: 
+                    
+                    // =============================================
+                    // class members
+                    // =============================================
+                    
+                    std::vector<coordinate> m_position; 
+                
+
+                public: 
+
+                    // =============================================
+                    // constructors
+                    // =============================================
+
+                    position(coordinate x, coordinate y, coordinate z) {
+                        m_position.push_back(x); 
+                        m_position.push_back(y);
+                        m_position.push_back(z); 
+                    }
+
+                    position(const std::vector<coordinate>& pos) : m_position{pos} {}
+
+                    position(const position& pos) : position(pos.get_coordinates()) {}
+
+
+                    // =============================================
+                    // set, get and print methods
+                    // =============================================
+
+                    void set_position(const std::vector<coordinate>& pos) { m_position = pos; }
+
+                    void set_coordinate_x(const double& x) { m_position[0].set_coordinate(x); }
+
+                    void set_coordinate_y(const double& y) { m_position[1].set_coordinate(y); }
+
+                    void set_coordinate_z(const double& z) { m_position[2].set_coordinate(z); }
+
+                    std::vector<coordinate> get_coordinates() const { return m_position; }
+
+                    coordinate get_coordinate_x() const { return m_position[0]; }
+
+                    coordinate get_coordinate_y() const { return m_position[1]; }
+
+                    coordinate get_coordinate_z() const { return m_position[2]; }
+
+                    double get_magnitude() const {
+                        return sqrt(pow(m_position[0].get_coordinate(), 2) +                 
+                                    pow(m_position[1].get_coordinate(), 2) + 
+                                    pow(m_position[2].get_coordinate(), 2));
+                    }        
+
+                    double get_distance(const std::vector<coordinate>& pos) const {        
+                        return sqrt(pow(pos[0].get_coordinate() - m_position[0].get_coordinate(), 2) + 
+                                    pow(pos[1].get_coordinate() - m_position[1].get_coordinate(), 2) + 
+                                    pow(pos[2].get_coordinate() - m_position[2].get_coordinate(), 2)); 
+                    }                    
+                    
+                    double get_distance(const position& pos) const {        
+                        return sqrt(pow(pos.get_coordinate_x().get_coordinate() - m_position[0].get_coordinate(), 2) + 
+                                    pow(pos.get_coordinate_y().get_coordinate() - m_position[1].get_coordinate(), 2) + 
+                                    pow(pos.get_coordinate_z().get_coordinate() - m_position[2].get_coordinate(), 2)); 
+                    }
+                    
+                    double get_rho() { return sqrt(pow(m_position[0].get_coordinate(), 2) + pow(m_position[1].get_coordinate(), 2)); }
+
+                    double get_phi() const { return atan2(m_position[1].get_coordinate(), m_position[0].get_coordinate()); }     
+
+                    double get_phi(const std::vector<coordinate>& pos) const { 
+                        return atan2(pos[1].get_coordinate() - m_position[1].get_coordinate(), pos[0].get_coordinate() - m_position[0].get_coordinate()); 
+                    }
+
+                    double get_phi(const position& pos) const { 
+                        return atan2(pos.get_coordinate_y().get_coordinate() - m_position[1].get_coordinate(), pos.get_coordinate_x().get_coordinate() - m_position[0].get_coordinate()); 
+                    }
+ 
+                    double get_theta() const { return acos(m_position[2].get_coordinate() / get_magnitude()); }
+            
+                    double get_theta(const std::vector<coordinate>& pos) const { 
+                        return acos((pos[2].get_coordinate() - m_position[2].get_coordinate()) / get_distance(pos)); 
+                    }
+
+                    double get_theta(const position& pos) const { 
+                        return acos((pos.get_coordinate_z().get_coordinate() - m_position[2].get_coordinate()) / get_distance(pos)); 
+                    }
+    
+                    // std::vector<coordinate> get_direction() const {
+                    //     return {cos(get_phi()), sin(get_phi()), m_position[2].get_coordinate() / get_magnitude()}};
+                    // } 
+
+                    // std::vector<coordinate> get_direction(const std::vector<coordinate>& pos1) const {
+                    //     return {cos(get_phi(pos1)), sin(get_phi(pos1)), (pos1[2].get_coordinate() - m_position[2].get_coordinate()) / get_distance(pos1)};
+                    // } 
+
+                    // std::vector<coordinate> get_direction(const position& pos1) const {
+                    //     return {cos(get_phi(pos1)), sin(get_phi(pos1)), (pos1.get_coordinate_z().get_coordinate() - m_position[2].get_coordinate()) / get_distance(pos1)};
+                    // } 
+
+                    // =============================================
+                    // print methods
+                    // =============================================
+
+                    void print() const {
+                        std::cout << "- position = { ";
+                        for (auto i : m_position) { 
+                            std::cout << "\t["; 
+                            i.coordinate::print(); 
+                            std::cout << "]";
+                        }
+                        std::cout << "  }" << std::endl; 
+                    }
+
+
+            }; // class position
+
+
+            class velocity {
+
+                private: 
+                    
+                    // =============================================
+                    // class members
+                    // =============================================
+                    
+                    std::vector<coordinate> m_velocity; 
+                
+
+                public: 
+
+                    // =============================================
+                    // constructors
+                    // =============================================
+
+                    velocity(coordinate x, coordinate y, coordinate z) {
+                        m_velocity.push_back(x); 
+                        m_velocity.push_back(y);
+                        m_velocity.push_back(z); 
+                    }
+
+                    velocity(const std::vector<coordinate>& vel) : m_velocity{vel} {}
+
+                    velocity(const velocity& vel) : m_velocity{vel.get_velocity()} {}
+
+
+                    // =============================================
+                    // set, get and print methods
+                    // =============================================
+
+                    void set_velocity(const std::vector<coordinate>& vel) { m_velocity = vel; }
+
+                    void set_velocity_x(const double& x) { m_velocity[0].set_coordinate(x); }
+
+                    void set_velocity_y(const double& y) { m_velocity[1].set_coordinate(y);  }
+
+                    void set_velocity_z(const double& z) { m_velocity[2].set_coordinate(z); }
+
+                    std::vector<coordinate> get_velocity() const { return m_velocity; }
+
+                    coordinate get_velocity_x() const { return m_velocity[0]; }
+
+                    coordinate get_velocity_y() const { return m_velocity[1]; }
+
+                    coordinate get_velocity_z() const { return m_velocity[2]; }
+                    
+
+                    double get_magnitude() const {
+                        return sqrt(pow(m_velocity[0].get_coordinate(), 2) +                 
+                                    pow(m_velocity[1].get_coordinate(), 2) + 
+                                    pow(m_velocity[2].get_coordinate(), 2));
+                    }          
+
+                    double get_phi() const { return atan2(m_velocity[1].get_coordinate(), m_velocity[0].get_coordinate()); }     
+                    
+                    double get_theta() const { return acos(m_velocity[2].get_coordinate() / get_magnitude()); }
+
+                    // std::vector<coordinate> get_direction() const {
+                    //     return {cos(get_phi()), sin(get_phi()), cos(get_theta())};
+                    // } 
+
+                    void print() const {
+                        std::cout << "- velocity = { ";
+                            for (auto i : m_velocity) { 
+                            std::cout << "\t["; 
+                            i.coordinate::print(); 
+                            std::cout << "]";
+                        }
+                        std::cout << "  }" << std::endl; 
+                    }
+
+            }; // class velocity
+            
+
+        } // namespace position
+
+
+        namespace elements {
+
+            class mass {
+
+                protected: 
+
+                    // =============================================
+                    // class member
+                    // =============================================
+
+                    measurements::fixed_measurement m_mass; 
+
+                    position::position m_pos; 
+                    
+                    // bool m_gravitational_field = false;
+
+                    // std::vector<measurements::fixed_measurement> m_gravitational_attraction = zeros(3); 
+
+
+                public: 
+
+                    // =============================================
+                    // constructors and destructor
+                    // =============================================
+                    
+                    mass(const double& mass, const units::unit& mass_unit, const std::vector<position::coordinate>& pos) : 
+                        m_mass{mass, mass_unit}, m_pos{pos} {}
+
+                    mass(const double& mass, const units::unit& mass_unit, const position::position& pos) : 
+                        m_mass{mass, mass_unit}, m_pos{pos} {}
+
+                    ~mass() {}
+
+
+                    // // =============================================
+                    // // set and get methods
+                    // // =============================================
+
+                    // void set_mass(const double& mass) { m_mass = mass; }
+
+                    // void set_mass_um_prefix(const char* um_prefix) { m_mass_um_prefix = um_prefix; }
+                    
+                    // double get_mass() const { return m_mass; }
+
+                    // const char* get_mass_um() const { return m_mass_um; }
+
+                    // const char* get_mass_um_prefix() const { return m_mass_um_prefix; }
+
+                
+                    // // =============================================
+                    // // gravitational methods
+                    // // =============================================
+
+                    // void activate_gravitational_field() { m_gravitational_field = true; }
+
+                    // void deactivate_gravitational_field() { m_gravitational_field = false; }
+
+                    // void reset_gravitational_attraction() { m_gravitational_attraction.clear(); }
+
+                    // void add_gravitational_attraction(const std::vector<double>& attraction) { m_gravitational_attraction += attraction; }
+
+                    // std::vector<double> get_gravitational_attraction() const { return m_gravitational_attraction; }
+
+                    // std::vector<double> gravitational_attraction(const std::vector<double>& coord1) {
+                    //     if (m_gravitational_field == false) {
+                    //         std::cout << "Before evaluating the gravitational attraction given by this mass in these coordinates, you must activate the gravitational field." << std::endl; 
+                    //         exit(-11);
+                    //     }
+                    //     if (coord1 == get_coordinates()) return zeros(3);
+                    //     std::vector<double> appo = get_direction(coord1) * (- G * m_mass / pow(get_distance(coord1), 2));
+                    //     return appo; 
+                    // }
+
+
+                    // // =============================================
+                    // // print methods
+                    // // =============================================
+                    
+                    // void print_mass() const { 
+                    //     std::cout << "- mass = " << get_mass() << " " << get_mass_um_prefix() << get_mass_um() << std::endl;
+                    // }
+
+                    // void print_gravitational_attraction() const { 
+                    //     std::cout << "- gravitational attraction: " << std::endl; 
+                    //     for (auto i : get_gravitational_attraction()) std::cout << "[" << i << "]\t";
+                    //     std::cout << std::endl; 
+                    // }
+                
+            }; // class mass
+
+        } // namespace elements
+
     } // namespace tools
   
-
 } // namespace physics
 
-            
+
+
 
